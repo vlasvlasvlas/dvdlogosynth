@@ -1,5 +1,6 @@
 import { clamp, randomBetween } from './utils.js';
 import { logoCanSound } from './logo.js';
+import { STAR_FORCE_SCALE } from './config.js';
 
 export function updatePhysics(dt, sceneCtx) {
   const { logos, width, height, state, audio, stars } = sceneCtx;
@@ -19,12 +20,13 @@ export function updatePhysics(dt, sceneCtx) {
         const dy = star.y - cy;
         const d2 = dx * dx + dy * dy + 400;
         const d = Math.sqrt(d2);
-        const radius = star.radius || 700;
+        const radius = star.radius || 350;
         if (d > radius) {
           continue;
         }
+        const force = typeof star.force === 'number' ? star.force : 50;
         const falloff = Math.max(0, 1 - d / radius);
-        const accel = ((star.mass || 220000) / d2) * falloff;
+        const accel = ((force * STAR_FORCE_SCALE) / d2) * falloff;
         logo.vx += ((accel * dx) / d) * dt;
         logo.vy += ((accel * dy) / d) * dt;
       }
