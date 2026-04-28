@@ -1241,6 +1241,17 @@ function bindUI() {
   });
 }
 
+function shutdownAudio() {
+  try {
+    audio.stopAllDrones();
+  } catch (_) { /* noop */ }
+  try {
+    if (audio.ctx && audio.ctx.state !== 'closed') {
+      audio.ctx.close();
+    }
+  } catch (_) { /* noop */ }
+}
+
 function init() {
   handleResize();
   window.addEventListener('resize', handleResize);
@@ -1248,6 +1259,9 @@ function init() {
   bindUI();
 
   syncGlobalControls();
+
+  window.addEventListener('pagehide', shutdownAudio);
+  window.addEventListener('beforeunload', shutdownAudio);
 
   requestAnimationFrame(animate);
 }
