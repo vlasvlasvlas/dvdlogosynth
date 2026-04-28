@@ -42,7 +42,9 @@ const trailInput = document.getElementById('trailInput');
 const soundEnabledInput = document.getElementById('soundEnabledInput');
 const waveInput = document.getElementById('waveInput');
 const reverbSendInput = document.getElementById('reverbSendInput');
-const delaySendInput = document.getElementById('delaySendInput');
+const delayMixInput = document.getElementById('delayMixInput');
+const delayTimeInput = document.getElementById('delayTimeInput');
+const trailLengthInput = document.getElementById('trailLengthInput');
 const droneEnabledInput = document.getElementById('droneEnabledInput');
 const droneFreqInput = document.getElementById('droneFreqInput');
 const droneVolumeInput = document.getElementById('droneVolumeInput');
@@ -106,7 +108,9 @@ function randomSeedFromLogo(fromLogo) {
       soundEnabled: fromLogo.soundEnabled,
       wave: fromLogo.wave,
       reverbSend: fromLogo.reverbSend,
-      delaySend: fromLogo.delaySend,
+      delayMix: fromLogo.delayMix,
+      delayTime: fromLogo.delayTime,
+      trailLength: fromLogo.trailLength,
       droneEnabled: fromLogo.droneEnabled,
       droneFreq: fromLogo.droneFreq,
       droneVolume: fromLogo.droneVolume,
@@ -120,7 +124,9 @@ function randomSeedFromLogo(fromLogo) {
     soundEnabled: true,
     wave: WAVE_TYPES[Math.floor(randomBetween(0, WAVE_TYPES.length))],
     reverbSend: randomBetween(0.12, 0.48),
-    delaySend: randomBetween(0.06, 0.34),
+    delayMix: randomBetween(0.06, 0.34),
+    delayTime: randomBetween(0.18, 0.55),
+    trailLength: 16,
     droneEnabled: false,
     droneFreq: randomBetween(60, 360),
     droneVolume: randomBetween(0.1, 0.5),
@@ -169,7 +175,9 @@ function createLogoData(seed, spatial = null) {
     soundEnabled: seed.soundEnabled,
     wave: seed.wave,
     reverbSend: seed.reverbSend,
-    delaySend: seed.delaySend,
+    delayMix: seed.delayMix,
+    delayTime: seed.delayTime,
+    trailLength: seed.trailLength,
     droneEnabled: seed.droneEnabled,
     droneFreq: seed.droneFreq,
     droneVolume: seed.droneVolume,
@@ -205,7 +213,9 @@ function addLogoFromSerialized(data, shouldSelect = false) {
     soundEnabled: data.soundEnabled !== false,
     wave: WAVE_TYPES.includes(data.wave) ? data.wave : 'sine',
     reverbSend: clamp(Number(data.reverbSend) || 0, 0, 1),
-    delaySend: clamp(Number(data.delaySend) || 0, 0, 1),
+    delayMix: clamp(Number(data.delayMix ?? data.delaySend) || 0, 0, 1),
+    delayTime: clamp(Number(data.delayTime ?? 0.26), 0.02, 2.4),
+    trailLength: clamp(Number(data.trailLength ?? (data.trail === 'line' ? 52 : 16)), 2, 200),
     droneEnabled: Boolean(data.droneEnabled),
     droneFreq: clamp(Number(data.droneFreq) || 220, 40, 1200),
     droneVolume: clamp(Number(data.droneVolume) || 0.2, 0, 1),
@@ -316,10 +326,12 @@ function syncInspector() {
 
   speedInput.value = String(Math.round(logo.speed));
   trailInput.value = logo.trail;
+  trailLengthInput.value = String(Math.round(logo.trailLength));
   soundEnabledInput.checked = logo.soundEnabled;
   waveInput.value = logo.wave;
   reverbSendInput.value = String(logo.reverbSend);
-  delaySendInput.value = String(logo.delaySend);
+  delayMixInput.value = String(logo.delayMix);
+  delayTimeInput.value = String(logo.delayTime);
   droneEnabledInput.checked = logo.droneEnabled;
   droneFreqInput.value = String(Math.round(logo.droneFreq));
   droneVolumeInput.value = String(logo.droneVolume);
@@ -398,7 +410,7 @@ function applyPreset(name) {
         soundEnabled: true,
         wave: 'sine',
         reverbSend: 0.04,
-        delaySend: 0.02,
+        delayMix: 0.02,
         droneEnabled: false,
         droneFreq: 180,
         droneVolume: 0.12,
@@ -423,7 +435,7 @@ function applyPreset(name) {
         soundEnabled: true,
         wave: 'sine',
         reverbSend: 0.08,
-        delaySend: 0.04,
+        delayMix: 0.04,
         droneEnabled: false,
         droneFreq: 180,
         droneVolume: 0.2,
@@ -465,7 +477,7 @@ function applyPreset(name) {
           soundEnabled: true,
           wave: i % 3 === 0 ? 'sawtooth' : 'triangle',
           reverbSend: 0.35,
-          delaySend: 0.21,
+          delayMix: 0.21,
           droneEnabled: false,
           droneFreq: 120 + i * 30,
           droneVolume: 0.2,
@@ -494,7 +506,7 @@ function applyPreset(name) {
           soundEnabled: true,
           wave: i % 2 === 0 ? 'triangle' : 'sine',
           reverbSend: 0.48,
-          delaySend: 0.17,
+          delayMix: 0.17,
           droneEnabled: true,
           droneFreq: freqs[i],
           droneVolume: 0.32,
@@ -535,12 +547,15 @@ function randomizeScene() {
     logo.glow = randomBetween(0.35, 0.95);
     logo.trail = TRAIL_MODES[Math.floor(randomBetween(0, TRAIL_MODES.length))];
     logo.wave = WAVE_TYPES[Math.floor(randomBetween(0, WAVE_TYPES.length))];
-    logo.reverbSend = randomBetween(0.06, 0.6);
-    logo.delaySend = randomBetween(0.04, 0.4);
+    logo.reverbSend = randomBetween(0.06, 0.9);
+    logo.delayMix = randomBetween(0.04, 0.7);
+    logo.delayTime = randomBetween(0.1, 1.2);
+    logo.trailLength = Math.round(randomBetween(8, 120));
     logo.droneEnabled = Math.random() > 0.55;
     logo.droneFreq = randomBetween(55, 500);
     logo.droneVolume = randomBetween(0.05, 0.45);
     logo.setSpeed(randomBetween(120, 520));
+    audio.syncLogoChannel(logo);
     audio.syncDrone(logo);
   }
 
@@ -883,9 +898,23 @@ function bindUI() {
     });
   });
 
-  delaySendInput.addEventListener('input', () => {
+  delayMixInput.addEventListener('input', () => {
     applyToSelected((logo) => {
-      logo.delaySend = Number(delaySendInput.value);
+      logo.delayMix = Number(delayMixInput.value);
+      audio.syncLogoChannel(logo);
+    });
+  });
+
+  delayTimeInput.addEventListener('input', () => {
+    applyToSelected((logo) => {
+      logo.delayTime = Number(delayTimeInput.value);
+      audio.syncLogoChannel(logo);
+    });
+  });
+
+  trailLengthInput.addEventListener('input', () => {
+    applyToSelected((logo) => {
+      logo.trailLength = Number(trailLengthInput.value);
     });
   });
 

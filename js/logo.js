@@ -16,7 +16,9 @@ export class Logo {
     this.soundEnabled = opts.soundEnabled;
     this.wave = opts.wave;
     this.reverbSend = opts.reverbSend;
-    this.delaySend = opts.delaySend;
+    this.delayMix = opts.delayMix ?? opts.delaySend ?? 0;
+    this.delayTime = opts.delayTime ?? 0.26;
+    this.trailLength = opts.trailLength ?? (opts.trail === 'line' ? 52 : 16);
     this.droneEnabled = opts.droneEnabled;
     this.droneFreq = opts.droneFreq;
     this.droneVolume = opts.droneVolume;
@@ -68,7 +70,9 @@ export class Logo {
       soundEnabled: this.soundEnabled,
       wave: this.wave,
       reverbSend: this.reverbSend,
-      delaySend: this.delaySend,
+      delayMix: this.delayMix,
+      delayTime: this.delayTime,
+      trailLength: this.trailLength,
       droneEnabled: this.droneEnabled,
       droneFreq: this.droneFreq,
       droneVolume: this.droneVolume,

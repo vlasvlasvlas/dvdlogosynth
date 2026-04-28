@@ -41,6 +41,7 @@ export class AudioEngine {
     this.performanceModeTarget = false;
 
     this.droneVoices = new Map();
+    this.logoChannels = new Map();
 
     this.voiceBudgetCount = 0;
     this.voiceBudgetWindow = 0;
@@ -97,7 +98,7 @@ export class AudioEngine {
       this.delayFilter.frequency.value = 4700;
 
       this.convolver = this.ctx.createConvolver();
-      this.convolver.buffer = this._buildImpulse(1.8, 2.4);
+      this.convolver.buffer = this._buildImpulse(4.5, 1.6);
       this.driveCurve = makeDriveCurve(240);
 
       this.dryBus.connect(this.comp);
@@ -145,15 +146,15 @@ export class AudioEngine {
     return impulse;
   }
 
-  _connectVoice(voiceGain, opts) {
+  _connectVoice(voiceGain, opts, logoId) {
     const dry = this.ctx.createGain();
-    dry.gain.value = Math.max(0, 1 - (opts.reverbSend + opts.delaySend) * 0.55);
+    dry.gain.value = Math.max(0.2, 1 - (opts.reverbSend * 0.35 + opts.delayMix * 0.4));
 
     const toReverb = this.ctx.createGain();
-    toReverb.gain.value = opts.reverbSend;
+    toReverb.gain.value = opts.reverbSend * 2.2;
 
     const toDelay = this.ctx.createGain();
-    toDelay.gain.value = opts.delaySend;
+    toDelay.gain.value = opts.delayMix;
 
     voiceGain.connect(dry);
     voiceGain.connect(toReverb);
@@ -161,9 +162,62 @@ export class AudioEngine {
 
     dry.connect(this.dryBus);
     toReverb.connect(this.reverbSendBus);
-    toDelay.connect(this.delaySendBus);
+
+    const channel = logoId != null ? this._ensureLogoChannel(logoId) : null;
+    if (channel) {
+      toDelay.connect(channel.input);
+    }
 
     return { dry, toReverb, toDelay };
+  }
+
+  _ensureLogoChannel(logoId) {
+    if (!this.initialized || !this.ctx) {
+      return null;
+    }
+    let ch = this.logoChannels.get(logoId);
+    if (ch) {
+      return ch;
+    }
+
+    const input = this.ctx.createGain();
+    input.gain.value = 1;
+
+    const delayNode = this.ctx.createDelay(2.5);
+    delayNode.delayTime.value = 0.26;
+
+    const feedback = this.ctx.createGain();
+    feedback.gain.value = 0;
+
+    const tone = this.ctx.createBiquadFilter();
+    tone.type = 'lowpass';
+    tone.frequency.value = 5200;
+
+    const wet = this.ctx.createGain();
+    wet.gain.value = 1;
+
+    input.connect(delayNode);
+    delayNode.connect(tone);
+    tone.connect(feedback);
+    feedback.connect(delayNode);
+    tone.connect(wet);
+    wet.connect(this.dryBus);
+
+    ch = { input, delayNode, feedback, tone, wet };
+    this.logoChannels.set(logoId, ch);
+    return ch;
+  }
+
+  syncLogoChannel(logo) {
+    const ch = this._ensureLogoChannel(logo.id);
+    if (!ch) {
+      return;
+    }
+    const now = this.ctx.currentTime;
+    const time = clamp(logo.delayTime ?? 0.26, 0.02, 2.4);
+    const mix = clamp(logo.delayMix ?? 0, 0, 1);
+    ch.delayNode.delayTime.setTargetAtTime(time, now, 0.06);
+    ch.feedback.gain.setTargetAtTime(mix * 0.95, now, 0.05);
   }
 
   _withinVoiceBudget() {
@@ -262,10 +316,11 @@ export class AudioEngine {
     shaper.curve = this.driveCurve;
     shaper.oversample = '2x';
 
+    this.syncLogoChannel(logo);
     const aux = this._connectVoice(envelope, {
       reverbSend: logo.reverbSend,
-      delaySend: logo.delaySend,
-    });
+      delayMix: logo.delayMix,
+    }, logo.id);
 
     mod.connect(modGain);
     modGain.connect(carrier.frequency);
@@ -389,10 +444,11 @@ export class AudioEngine {
       amp.gain.setValueAtTime(0.0001, now);
       amp.gain.exponentialRampToValueAtTime(Math.max(0.0001, logo.droneVolume * 0.22), now + 0.12);
 
+      this.syncLogoChannel(logo);
       const aux = this._connectVoice(amp, {
-        reverbSend: Math.min(1, logo.reverbSend * 0.7 + 0.1),
-        delaySend: Math.min(1, logo.delaySend * 0.6),
-      });
+        reverbSend: Math.min(1.5, logo.reverbSend * 0.85 + 0.12),
+        delayMix: clamp(logo.delayMix, 0, 1),
+      }, logo.id);
 
       lfo.connect(lfoGain);
       lfoGain.connect(filter.frequency);
@@ -420,10 +476,11 @@ export class AudioEngine {
     existing.lfoGain.gain.setTargetAtTime((logo.droneFilterCutoff || 800) * lfoDepth, now, 0.08);
     existing.amp.gain.setTargetAtTime(Math.max(0.0001, logo.droneVolume * 0.22), now, 0.08);
 
-    existing.aux.toReverb.gain.setTargetAtTime(Math.min(1, logo.reverbSend * 0.7 + 0.1), now, 0.08);
-    existing.aux.toDelay.gain.setTargetAtTime(Math.min(1, logo.delaySend * 0.6), now, 0.08);
+    this.syncLogoChannel(logo);
+    existing.aux.toReverb.gain.setTargetAtTime(Math.min(1.5, logo.reverbSend * 0.85 + 0.12) * 2.2, now, 0.08);
+    existing.aux.toDelay.gain.setTargetAtTime(clamp(logo.delayMix, 0, 1), now, 0.08);
     existing.aux.dry.gain.setTargetAtTime(
-      Math.max(0, 1 - (logo.reverbSend + logo.delaySend) * 0.4),
+      Math.max(0.2, 1 - (logo.reverbSend * 0.35 + logo.delayMix * 0.4)),
       now,
       0.08,
     );
@@ -431,11 +488,25 @@ export class AudioEngine {
 
   removeLogo(logoId) {
     const voice = this.droneVoices.get(logoId);
-    if (!voice) {
-      return;
+    if (voice) {
+      this._stopDroneVoice(voice);
+      this.droneVoices.delete(logoId);
     }
-    this._stopDroneVoice(voice);
-    this.droneVoices.delete(logoId);
+    const ch = this.logoChannels.get(logoId);
+    if (ch) {
+      this.logoChannels.delete(logoId);
+      const now = this.ctx.currentTime;
+      ch.input.gain.setTargetAtTime(0, now, 0.08);
+      ch.feedback.gain.setTargetAtTime(0, now, 0.08);
+      const tailMs = Math.max(500, (ch.delayNode.delayTime.value || 0.26) * 8000);
+      setTimeout(() => {
+        ch.input.disconnect();
+        ch.delayNode.disconnect();
+        ch.feedback.disconnect();
+        ch.tone.disconnect();
+        ch.wet.disconnect();
+      }, tailMs);
+    }
   }
 
   stopAllDrones() {

@@ -64,6 +64,10 @@
             </select>
           </div>
           <div class="control-row">
+            <label>Trail len</label>
+            <input id="trailLengthInput" type="range" min="2" max="200" step="1" />
+          </div>
+          <div class="control-row">
             <label>Bounce sound</label>
             <input id="soundEnabledInput" type="checkbox" />
           </div>
@@ -81,8 +85,12 @@
             <input id="reverbSendInput" type="range" min="0" max="1" step="0.01" />
           </div>
           <div class="control-row">
-            <label>Delay</label>
-            <input id="delaySendInput" type="range" min="0" max="1" step="0.01" />
+            <label>Delay mix</label>
+            <input id="delayMixInput" type="range" min="0" max="1" step="0.01" />
+          </div>
+          <div class="control-row">
+            <label>Delay time</label>
+            <input id="delayTimeInput" type="range" min="0.02" max="2" step="0.01" />
           </div>
           <div class="control-row">
             <label>Drone</label>
