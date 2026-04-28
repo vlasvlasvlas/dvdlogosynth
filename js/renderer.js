@@ -25,7 +25,8 @@ logoImage.onload = () => {
     const d = imgData.data;
     for (let i = 0; i < d.length; i += 4) {
       const brightness = (d[i] + d[i + 1] + d[i + 2]) / 3;
-      const alpha = 255 - brightness;
+      const origAlpha = d[i + 3];
+      const alpha = Math.round((origAlpha / 255) * (255 - brightness));
       d[i] = 255;
       d[i + 1] = 0;
       d[i + 2] = 0;
