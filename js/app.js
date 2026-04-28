@@ -1,4 +1,4 @@
-import { CONFIG, TRAIL_MODES, WAVE_TYPES } from './config.js';
+import { CONFIG, TRAIL_MODES, WAVE_TYPES, STAR_DEFAULT_MASS, STAR_MAX } from './config.js';
 import { clamp, randomBetween } from './utils.js';
 import { Logo, makeLogoName, cleanLogoName, logoCanDrone } from './logo.js';
 import { AudioEngine } from './audio.js';
@@ -17,6 +17,8 @@ const controlsEl = document.getElementById('controls');
 
 const addBtn = document.getElementById('addBtn');
 const removeBtn = document.getElementById('removeBtn');
+const addStarBtn = document.getElementById('addStarBtn');
+const removeStarBtn = document.getElementById('removeStarBtn');
 const helpBtn = document.getElementById('helpBtn');
 const configBtn = document.getElementById('configBtn');
 const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
@@ -62,6 +64,8 @@ let logoCounter = 0;
 const logos = [];
 let selectedLogoId = null;
 
+const stars = [];
+
 const state = {
   collisionsEnabled: true,
   performanceMode: false,
@@ -85,6 +89,30 @@ function handleResize() {
   for (const logo of logos) {
     clampLogoInBounds(logo);
   }
+  for (const star of stars) {
+    star.x = clamp(star.x, 0, width);
+    star.y = clamp(star.y, 0, height);
+  }
+}
+
+function addStar() {
+  if (stars.length >= STAR_MAX) {
+    return false;
+  }
+  stars.push({
+    x: randomBetween(width * 0.15, width * 0.85),
+    y: randomBetween(height * 0.15, height * 0.85),
+    mass: STAR_DEFAULT_MASS,
+  });
+  return true;
+}
+
+function removeStar() {
+  if (stars.length === 0) {
+    return false;
+  }
+  stars.pop();
+  return true;
 }
 
 function clampLogoInBounds(logo) {
@@ -300,6 +328,7 @@ function clearScene() {
   logos.length = 0;
   logoCounter = 0;
   selectedLogoId = null;
+  stars.length = 0;
   syncGlobalControls();
 }
 
@@ -586,6 +615,7 @@ function serializeScene() {
       delayReturn: state.delayReturn,
     },
     logos: logos.map((logo) => logo.serialize()),
+    stars: stars.map((s) => ({ x: s.x, y: s.y, mass: s.mass })),
   };
 }
 
@@ -637,6 +667,20 @@ function loadSceneFromObject(scene) {
     addLogoFromSerialized(logoData);
   }
 
+  if (Array.isArray(scene.stars)) {
+    for (const s of scene.stars.slice(0, STAR_MAX)) {
+      const sx = Number(s?.x);
+      const sy = Number(s?.y);
+      if (Number.isFinite(sx) && Number.isFinite(sy)) {
+        stars.push({
+          x: clamp(sx, 0, width),
+          y: clamp(sy, 0, height),
+          mass: Number(s?.mass) || STAR_DEFAULT_MASS,
+        });
+      }
+    }
+  }
+
   applyGlobalAudioState();
   audio.setPerformanceMode(state.performanceMode);
 
@@ -684,14 +728,14 @@ function animate(now) {
   lastTime = now;
 
   updatePerformanceMetrics(dt);
-  updatePhysics(dt, { logos, width, height, state, audio });
+  updatePhysics(dt, { logos, stars, width, height, state, audio });
 
   for (const logo of logos) {
     logo.droneActive = logoCanDrone(logo, logos);
     audio.syncDrone(logo);
   }
 
-  drawFrame(logos);
+  drawFrame(logos, stars);
   requestAnimationFrame(animate);
 }
 
@@ -708,6 +752,16 @@ function bindUI() {
     const before = logos.length;
     removeLogo();
     if (logos.length < before) audio.playRemoveBlip();
+  });
+
+  addStarBtn.addEventListener('click', async () => {
+    await audio.boot();
+    if (addStar()) audio.playAddPing();
+  });
+
+  removeStarBtn.addEventListener('click', async () => {
+    await audio.boot();
+    if (removeStar()) audio.playRemoveBlip();
   });
 
   configBtn.addEventListener('click', () => {

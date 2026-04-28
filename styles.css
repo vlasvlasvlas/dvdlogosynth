@@ -73,6 +73,17 @@ select {
   background: #222;
 }
 
+.navbar .btn.btn-star {
+  font-size: 13px;
+  letter-spacing: -1px;
+  color: #c9a23a;
+}
+
+.navbar .btn.btn-star:hover {
+  color: #ffd86b;
+  border-color: #c9a23a;
+}
+
 /* ── Sidebar ── */
 .sidebar {
   position: fixed;

@@ -12,6 +12,8 @@
     <nav class="navbar">
       <button id="addBtn" class="btn" type="button" title="Agregar logo (+)">+</button>
       <button id="removeBtn" class="btn" type="button" title="Quitar logo (-)">−</button>
+      <button id="addStarBtn" class="btn btn-star" type="button" title="Agregar estrella de gravedad">★+</button>
+      <button id="removeStarBtn" class="btn btn-star" type="button" title="Quitar estrella">★−</button>
       <button id="helpBtn" class="btn" type="button" title="Ayuda (?)">?</button>
       <button id="configBtn" class="btn" type="button" title="Configuración (⚙)">⚙</button>
     </nav>
@@ -58,14 +60,15 @@
           <div class="control-row">
             <label>Trail</label>
             <select id="trailInput">
-            <option value="off">Off</option>
+              <option value="off">Off</option>
               <option value="ghost">Ghost</option>
               <option value="line">Line</option>
+              <option value="line-only">Line only</option>
             </select>
           </div>
           <div class="control-row">
             <label>Trail len</label>
-            <input id="trailLengthInput" type="range" min="2" max="200" step="1" />
+            <input id="trailLengthInput" type="range" min="2" max="1000" step="1" />
           </div>
           <div class="control-row">
             <label>Bounce sound</label>

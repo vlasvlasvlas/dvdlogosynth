@@ -2,7 +2,7 @@ import { clamp, randomBetween } from './utils.js';
 import { logoCanSound } from './logo.js';
 
 export function updatePhysics(dt, sceneCtx) {
-  const { logos, width, height, state, audio } = sceneCtx;
+  const { logos, width, height, state, audio, stars } = sceneCtx;
 
   for (const logo of logos) {
     if (logo.locked) {
@@ -10,6 +10,27 @@ export function updatePhysics(dt, sceneCtx) {
     }
 
     logo.hitCooldown = Math.max(0, logo.hitCooldown - dt);
+
+    if (stars && stars.length > 0) {
+      const cx = logo.x + logo.w / 2;
+      const cy = logo.y + logo.h / 2;
+      for (const star of stars) {
+        const dx = star.x - cx;
+        const dy = star.y - cy;
+        const d2 = dx * dx + dy * dy + 400;
+        const accel = (star.mass || 220000) / d2;
+        const d = Math.sqrt(d2);
+        logo.vx += (accel * dx) / d * dt;
+        logo.vy += (accel * dy) / d * dt;
+      }
+      const speed = Math.hypot(logo.vx, logo.vy);
+      const maxSpeed = 1400;
+      if (speed > maxSpeed) {
+        logo.vx = (logo.vx / speed) * maxSpeed;
+        logo.vy = (logo.vy / speed) * maxSpeed;
+      }
+    }
+
     logo.x += logo.vx * dt;
     logo.y += logo.vy * dt;
 
