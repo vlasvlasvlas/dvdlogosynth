@@ -1391,6 +1391,18 @@ function shutdownAudio() {
   } catch (_) { /* noop */ }
 }
 
+function spawnInitialLogo() {
+  addLogoFromSerialized({
+    hue: 200,
+    trail: 'off',
+    soundEnabled: false,
+    droneEnabled: false,
+  });
+  selectedLogoId = null;
+  syncGlobalControls();
+  syncInspector();
+}
+
 function init() {
   handleResize();
   window.addEventListener('resize', handleResize);
@@ -1398,6 +1410,7 @@ function init() {
   bindUI();
 
   syncGlobalControls();
+  spawnInitialLogo();
 
   window.addEventListener('pagehide', shutdownAudio);
   window.addEventListener('beforeunload', shutdownAudio);

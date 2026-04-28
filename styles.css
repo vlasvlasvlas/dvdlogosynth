@@ -434,6 +434,10 @@ select {
     display: none;
   }
 
+  #configBtn {
+    display: none;
+  }
+
   .navbar .btn {
     width: 28px;
     height: 28px;
