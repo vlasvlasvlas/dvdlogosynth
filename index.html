@@ -56,6 +56,7 @@
           <div class="control-row">
             <label>Force</label>
             <input id="starForceInput" type="range" min="-100" max="100" step="1" />
+            <span id="starForceReadout" class="readout">+50</span>
           </div>
           <div class="control-row">
             <label>Radius</label>
@@ -192,13 +193,31 @@
 
     <dialog id="helpDialog" class="help-dialog">
       <h2>dvdlogosynth</h2>
-      <p>Instrumento audiovisual. Cada logo DVD rebota, cambia de color y suena. Click en un logo para editarlo.</p>
+      <p>Instrumento audiovisual. Cada logo DVD rebota, cambia de color y suena. Las estrellas son puntos de gravedad que curvan las trayectorias.</p>
+
+      <h3>Logos</h3>
       <dl>
-        <dt>+ / −</dt><dd>Agregar / quitar logos</dd>
-        <dt>Click en logo</dt><dd>Seleccionar y editar</dd>
-        <dt>⚙</dt><dd>Abrir configuración</dd>
-        <dt>R</dt><dd>Randomize</dd>
+        <dt>+ / −</dt><dd>Agregar / quitar logo (max 64)</dd>
+        <dt>Click en logo</dt><dd>Seleccionar y editar (color, sonido, drone, trail, delay, reverb)</dd>
       </dl>
+
+      <h3>Estrellas (gravedad)</h3>
+      <dl>
+        <dt>★+ / ★−</dt><dd>Agregar / quitar estrella (max 16)</dd>
+        <dt>Click en estrella</dt><dd>Seleccionar para editar</dd>
+        <dt>Drag</dt><dd>Mover la estrella por la escena</dd>
+        <dt>Force</dt><dd>+ atrae, − repele, 0 sin efecto (rango -100 a +100)</dd>
+        <dt>Radius</dt><dd>Zona de influencia</dd>
+        <dt>Display</dt><dd>Estrella + anillo, solo estrella, u oculta (la fisica sigue)</dd>
+      </dl>
+
+      <h3>Atajos</h3>
+      <dl>
+        <dt>⚙</dt><dd>Abrir configuracion</dd>
+        <dt>R</dt><dd>Randomize</dd>
+        <dt>P / C</dt><dd>Performance mode / toggle colisiones</dd>
+      </dl>
+
       <p><a href="https://github.com/vlasvlasvlas/dvdlogosynth" target="_blank" rel="noopener">GitHub →</a></p>
       <button id="closeHelpBtn" class="close-btn" type="button">Cerrar</button>
     </dialog>

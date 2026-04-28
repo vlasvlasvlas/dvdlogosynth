@@ -25,9 +25,15 @@ const inspector = document.getElementById('inspector');
 const controlsEl = document.getElementById('controls');
 const starControlsEl = document.getElementById('starControls');
 const starForceInput = document.getElementById('starForceInput');
+const starForceReadout = document.getElementById('starForceReadout');
 const starRadiusInput = document.getElementById('starRadiusInput');
 const starDisplayInput = document.getElementById('starDisplayInput');
 const deleteStarBtn = document.getElementById('deleteStarBtn');
+
+function formatForce(value) {
+  const n = Math.round(Number(value));
+  return n > 0 ? `+${n}` : String(n);
+}
 
 const addBtn = document.getElementById('addBtn');
 const removeBtn = document.getElementById('removeBtn');
@@ -403,6 +409,7 @@ function syncInspector() {
     starControlsEl.classList.remove('hidden');
     selectedChannelLabel.textContent = `Star #${String(star.id).padStart(2, '0')}`;
     starForceInput.value = String(Math.round(star.force));
+    starForceReadout.textContent = formatForce(star.force);
     starRadiusInput.value = String(Math.round(star.radius));
     starDisplayInput.value = star.display || 'full';
     return;
@@ -850,6 +857,7 @@ function bindUI() {
     const star = getSelectedStar();
     if (!star) return;
     star.force = Number(starForceInput.value);
+    starForceReadout.textContent = formatForce(star.force);
     state.sceneLabel = 'Custom';
   });
 
