@@ -1,0 +1,16 @@
+export const LOGO_IMAGE_PATH = 'dvdlogo.png';
+
+export const TRAIL_MODES = ['off', 'ghost', 'line'];
+
+export const WAVE_TYPES = ['sine', 'triangle', 'sawtooth', 'square'];
+
+export const CONFIG = {
+  dprLimit: 2,
+  maxLogos: 64,
+  minLogos: 0,
+  minSpeed: 60,
+  maxSpeed: 720,
+  defaultMasterGain: 0.75,
+  defaultReverbReturn: 0.22,
+  defaultDelayReturn: 0.18,
+};

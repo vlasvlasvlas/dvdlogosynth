@@ -1,0 +1,379 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  background: #000;
+  color: #ccc;
+  font-family: 'Courier New', Courier, monospace;
+  overflow: hidden;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ── Canvas ── */
+#stage {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+/* ── Navbar ── */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.navbar .btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+  border-radius: 0;
+  background: transparent;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.navbar .btn:hover {
+  border-color: #666;
+  color: #fff;
+}
+
+.navbar .btn:active {
+  background: #222;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 320px;
+  z-index: 20;
+  background: #111;
+  border-left: 1px solid #333;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transform: translateX(100%);
+  transition: transform 0.2s ease;
+}
+
+.sidebar.open {
+  transform: translateX(0);
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #222;
+}
+
+.sidebar-header span {
+  font-size: 14px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.sidebar-close {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+  background: transparent;
+  color: #999;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.sidebar-close:hover {
+  border-color: #666;
+  color: #fff;
+}
+
+/* ── Sidebar sections ── */
+.section {
+  border-bottom: 1px solid #222;
+  padding: 10px 12px;
+}
+
+.section-title {
+  font-size: 11px;
+  color: #555;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+/* ── Controls ── */
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.control-row label {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  min-width: 40px;
+}
+
+.control-row input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  accent-color: #888;
+}
+
+.control-row select {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #ccc;
+  font-size: 12px;
+}
+
+.control-row input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: #888;
+}
+
+/* ── Channel Bay ── */
+.channel-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.channel-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 4px;
+  border: 1px solid transparent;
+}
+
+.channel-row.selected {
+  border-color: #555;
+}
+
+.channel-main {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  color: #ccc;
+  cursor: pointer;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.channel-main .swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  vertical-align: 0;
+}
+
+.mini-btn {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+  background: transparent;
+  color: #888;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.mini-btn:hover {
+  border-color: #555;
+  color: #ccc;
+}
+
+.mini-btn.active {
+  color: #fff;
+  border-color: #888;
+}
+
+.mini-btn.warn {
+  color: #a44;
+  border-color: #533;
+}
+
+.mini-btn.warn:hover {
+  color: #f66;
+  border-color: #a44;
+}
+
+/* ── Strip actions ── */
+.strip-actions {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.strip-actions .btn {
+  flex: 1;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #333;
+  background: transparent;
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.strip-actions .btn:hover {
+  border-color: #555;
+  color: #ccc;
+}
+
+.strip-actions .btn.active {
+  color: #fff;
+  border-color: #888;
+}
+
+.no-selection {
+  color: #444;
+  font-size: 12px;
+  padding: 6px 0;
+}
+
+/* ── Help dialog ── */
+.help-dialog {
+  max-width: 480px;
+  border: 1px solid #333;
+  border-radius: 0;
+  color: #ccc;
+  background: #111;
+  font-family: 'Courier New', Courier, monospace;
+  padding: 20px;
+}
+
+.help-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.help-dialog h2 {
+  margin: 0 0 10px;
+  color: #fff;
+  font-size: 18px;
+}
+
+.help-dialog p {
+  color: #999;
+  font-size: 13px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.help-dialog dt {
+  color: #ccc;
+  font-size: 13px;
+}
+
+.help-dialog dd {
+  color: #777;
+  font-size: 12px;
+  margin-bottom: 8px;
+  margin-left: 12px;
+}
+
+.help-dialog a {
+  color: #888;
+}
+
+.help-dialog .close-btn {
+  margin-top: 14px;
+  height: 30px;
+  padding: 0 16px;
+  border: 1px solid #333;
+  background: transparent;
+  color: #999;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.help-dialog .close-btn:hover {
+  border-color: #666;
+  color: #fff;
+}
+
+/* ── OSD (minimal) ── */
+.osd {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  z-index: 5;
+  display: flex;
+  gap: 12px;
+  color: #444;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .sidebar {
+    width: 100%;
+  }
+
+  .navbar .btn {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+  }
+}

@@ -1,0 +1,11 @@
+# Local planning and product notes (not committed)
+/docs/
+
+# macOS local metadata
+.DS_Store
+
+# Local launcher with credentials
+start-claude.sh
+
+# Claude Code local config
+.claude/
