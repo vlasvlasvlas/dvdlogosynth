@@ -52,6 +52,20 @@
       <div class="section">
         <div class="section-title" id="selectedChannelLabel">No logo selected</div>
 
+        <div id="starControls" class="hidden">
+          <div class="control-row">
+            <label>Force</label>
+            <input id="starForceInput" type="range" min="10000" max="1500000" step="1000" />
+          </div>
+          <div class="control-row">
+            <label>Radius</label>
+            <input id="starRadiusInput" type="range" min="50" max="1500" step="1" />
+          </div>
+          <div class="strip-actions">
+            <button id="deleteStarBtn" class="btn" type="button">Delete star</button>
+          </div>
+        </div>
+
         <div id="controls" class="hidden">
           <div class="control-row">
             <label>Speed</label>

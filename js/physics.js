@@ -18,10 +18,15 @@ export function updatePhysics(dt, sceneCtx) {
         const dx = star.x - cx;
         const dy = star.y - cy;
         const d2 = dx * dx + dy * dy + 400;
-        const accel = (star.mass || 220000) / d2;
         const d = Math.sqrt(d2);
-        logo.vx += (accel * dx) / d * dt;
-        logo.vy += (accel * dy) / d * dt;
+        const radius = star.radius || 700;
+        if (d > radius) {
+          continue;
+        }
+        const falloff = Math.max(0, 1 - d / radius);
+        const accel = ((star.mass || 220000) / d2) * falloff;
+        logo.vx += ((accel * dx) / d) * dt;
+        logo.vy += ((accel * dy) / d) * dt;
       }
       const speed = Math.hypot(logo.vx, logo.vy);
       const maxSpeed = 1400;
