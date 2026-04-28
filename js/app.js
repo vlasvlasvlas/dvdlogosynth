@@ -20,6 +20,7 @@ import {
 } from './renderer.js';
 
 const canvas = document.getElementById('stage');
+const navbarEl = document.querySelector('.navbar');
 
 const inspector = document.getElementById('inspector');
 const controlsEl = document.getElementById('controls');
@@ -39,6 +40,7 @@ const addBtn = document.getElementById('addBtn');
 const removeBtn = document.getElementById('removeBtn');
 const addStarBtn = document.getElementById('addStarBtn');
 const removeStarBtn = document.getElementById('removeStarBtn');
+const cornersModeBtn = document.getElementById('cornersModeBtn');
 const helpBtn = document.getElementById('helpBtn');
 const configBtn = document.getElementById('configBtn');
 const sidebarCloseBtn = document.getElementById('sidebarCloseBtn');
@@ -90,6 +92,15 @@ let selectedStarId = null;
 let dragStarId = null;
 const dragOffset = { x: 0, y: 0 };
 
+let cornersModeActive = false;
+let cornersModePrevCollisions = null;
+const cornerStarIds = [];
+const CORNER_STAR_FORCE = 100;
+const CORNER_STAR_INSET = 60;
+const STAR_RADIUS_MIN = 50;
+const STAR_RADIUS_MAX = 1500;
+const CORNER_STAR_RADIUS = Math.round(STAR_RADIUS_MIN + (STAR_RADIUS_MAX - STAR_RADIUS_MIN) * 0.25);
+
 const state = {
   collisionsEnabled: true,
   performanceMode: false,
@@ -107,6 +118,9 @@ const audio = new AudioEngine();
 initRenderer(canvas);
 
 function handleResize() {
+  const navbarH = navbarEl ? Math.round(navbarEl.getBoundingClientRect().height) : 0;
+  canvas.style.top = `${navbarH}px`;
+
   const dims = resizeCanvas(CONFIG.dprLimit);
   width = dims.width;
   height = dims.height;
@@ -117,6 +131,107 @@ function handleResize() {
     star.x = clamp(star.x, 0, width);
     star.y = clamp(star.y, 0, height);
   }
+  if (cornersModeActive) {
+    repositionCornerStars();
+  }
+}
+
+function cornerStarPositions() {
+  const inset = CORNER_STAR_INSET;
+  return [
+    { x: inset, y: inset },
+    { x: Math.max(inset, width - inset), y: inset },
+    { x: inset, y: Math.max(inset, height - inset) },
+    { x: Math.max(inset, width - inset), y: Math.max(inset, height - inset) },
+  ];
+}
+
+function cornerStarRadius() {
+  return CORNER_STAR_RADIUS;
+}
+
+function repositionCornerStars() {
+  const positions = cornerStarPositions();
+  const radius = cornerStarRadius();
+  let i = 0;
+  for (const id of cornerStarIds) {
+    const star = stars.find((s) => s.id === id);
+    if (star && positions[i]) {
+      star.x = positions[i].x;
+      star.y = positions[i].y;
+      star.radius = radius;
+    }
+    i += 1;
+  }
+}
+
+function enableCornersMode() {
+  if (cornersModeActive) return false;
+
+  const free = STAR_MAX - stars.length;
+  if (free < 4) {
+    return false;
+  }
+
+  const positions = cornerStarPositions();
+  const radius = cornerStarRadius();
+  cornerStarIds.length = 0;
+  for (const pos of positions) {
+    const id = ++starCounter;
+    stars.push({
+      id,
+      x: pos.x,
+      y: pos.y,
+      force: CORNER_STAR_FORCE,
+      radius,
+      display: 'star',
+    });
+    cornerStarIds.push(id);
+  }
+
+  cornersModePrevCollisions = state.collisionsEnabled;
+  state.collisionsEnabled = false;
+  collisionsInput.checked = false;
+
+  cornersModeActive = true;
+  cornersModeBtn.classList.add('active');
+  cornersModeBtn.setAttribute('aria-pressed', 'true');
+  return true;
+}
+
+function disableCornersMode() {
+  if (!cornersModeActive) return false;
+
+  for (const id of cornerStarIds) {
+    const idx = stars.findIndex((s) => s.id === id);
+    if (idx >= 0) {
+      stars.splice(idx, 1);
+    }
+    if (selectedStarId === id) {
+      selectedStarId = null;
+    }
+  }
+  cornerStarIds.length = 0;
+  cornersModeActive = false;
+  cornersModeBtn.classList.remove('active');
+  cornersModeBtn.setAttribute('aria-pressed', 'false');
+
+  if (cornersModePrevCollisions !== null) {
+    state.collisionsEnabled = cornersModePrevCollisions;
+    collisionsInput.checked = cornersModePrevCollisions;
+    cornersModePrevCollisions = null;
+  }
+
+  syncInspector();
+  return true;
+}
+
+function toggleCornersMode() {
+  if (cornersModeActive) {
+    disableCornersMode();
+    return false;
+  }
+  return enableCornersMode();
 }
 
 function addStar() {
@@ -386,6 +501,13 @@ function clearScene() {
   starCounter = 0;
   selectedStarId = null;
   dragStarId = null;
+  cornerStarIds.length = 0;
+  if (cornersModeActive) {
+    cornersModeActive = false;
+    cornersModeBtn.classList.remove('active');
+    cornersModeBtn.setAttribute('aria-pressed', 'false');
+  }
+  cornersModePrevCollisions = null;
   syncGlobalControls();
 }
 
@@ -851,6 +973,20 @@ function bindUI() {
   removeStarBtn.addEventListener('click', async () => {
     await audio.boot();
     if (removeStar()) audio.playRemoveBlip();
+  });
+
+  cornersModeBtn.addEventListener('click', async () => {
+    await audio.boot();
+    const wasActive = cornersModeActive;
+    const changed = wasActive ? disableCornersMode() : enableCornersMode();
+    if (!changed) return;
+    if (wasActive) {
+      audio.playRemoveBlip();
+    } else {
+      audio.playAddPing();
+    }
+    state.sceneLabel = 'Custom';
+    syncGlobalControls();
   });
 
   starForceInput.addEventListener('input', () => {
