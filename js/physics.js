@@ -4,6 +4,7 @@ import { STAR_FORCE_SCALE } from './config.js';
 
 export function updatePhysics(dt, sceneCtx) {
   const { logos, width, height, state, audio, stars } = sceneCtx;
+  const topInset = state.topInset || 0;
 
   for (const logo of logos) {
     if (logo.locked) {
@@ -56,8 +57,8 @@ export function updatePhysics(dt, sceneCtx) {
       bouncedX = true;
     }
 
-    if (logo.y <= 0) {
-      logo.y = 0;
+    if (logo.y <= topInset) {
+      logo.y = topInset;
       logo.vy = Math.abs(logo.vy);
       bouncedY = true;
     } else if (logo.y >= maxY) {
@@ -70,7 +71,7 @@ export function updatePhysics(dt, sceneCtx) {
 
     const CORNER_MARGIN = 15;
     const nearEdgeX = logo.x <= CORNER_MARGIN || logo.x >= maxX - CORNER_MARGIN;
-    const nearEdgeY = logo.y <= CORNER_MARGIN || logo.y >= maxY - CORNER_MARGIN;
+    const nearEdgeY = logo.y <= topInset + CORNER_MARGIN || logo.y >= maxY - CORNER_MARGIN;
     const cornerHit = (bouncedX && bouncedY) ||
       (bouncedX && nearEdgeY) ||
       (bouncedY && nearEdgeX);

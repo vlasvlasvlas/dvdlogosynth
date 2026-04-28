@@ -111,6 +111,7 @@ const state = {
   reverbReturn: CONFIG.defaultReverbReturn,
   delayReturn: CONFIG.defaultDelayReturn,
   fpsReadoutAccumulator: 0,
+  topInset: 0,
 };
 
 const audio = new AudioEngine();
@@ -118,18 +119,16 @@ const audio = new AudioEngine();
 initRenderer(canvas);
 
 function handleResize() {
-  const navbarH = navbarEl ? Math.round(navbarEl.getBoundingClientRect().height) : 0;
-  canvas.style.top = `${navbarH}px`;
-
   const dims = resizeCanvas(CONFIG.dprLimit);
   width = dims.width;
   height = dims.height;
+  state.topInset = navbarEl ? Math.round(navbarEl.getBoundingClientRect().height) : 0;
   for (const logo of logos) {
     clampLogoInBounds(logo);
   }
   for (const star of stars) {
     star.x = clamp(star.x, 0, width);
-    star.y = clamp(star.y, 0, height);
+    star.y = clamp(star.y, state.topInset, height);
   }
   if (cornersModeActive) {
     repositionCornerStars();
@@ -138,11 +137,13 @@ function handleResize() {
 
 function cornerStarPositions() {
   const inset = CORNER_STAR_INSET;
+  const topY = state.topInset + inset;
+  const bottomY = Math.max(topY, height - inset);
   return [
-    { x: inset, y: inset },
-    { x: Math.max(inset, width - inset), y: inset },
-    { x: inset, y: Math.max(inset, height - inset) },
-    { x: Math.max(inset, width - inset), y: Math.max(inset, height - inset) },
+    { x: inset, y: topY },
+    { x: Math.max(inset, width - inset), y: topY },
+    { x: inset, y: bottomY },
+    { x: Math.max(inset, width - inset), y: bottomY },
   ];
 }
 
@@ -286,7 +287,7 @@ function deleteStar(id) {
 
 function clampLogoInBounds(logo) {
   logo.x = clamp(logo.x, 0, Math.max(0, width - logo.w));
-  logo.y = clamp(logo.y, 0, Math.max(0, height - logo.h));
+  logo.y = clamp(logo.y, state.topInset, Math.max(state.topInset, height - logo.h));
 }
 
 function refreshAllDrones() {
@@ -356,7 +357,9 @@ function createLogoData(seed, spatial = null) {
   const parsedX = Number(spatial?.x);
   const parsedY = Number(spatial?.y);
   const x = Number.isFinite(parsedX) ? parsedX : randomBetween(0, Math.max(1, width - w));
-  const y = Number.isFinite(parsedY) ? parsedY : randomBetween(0, Math.max(1, height - h));
+  const y = Number.isFinite(parsedY)
+    ? parsedY
+    : randomBetween(state.topInset, Math.max(state.topInset + 1, height - h));
 
   return new Logo({
     id,
