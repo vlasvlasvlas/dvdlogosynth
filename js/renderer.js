@@ -147,9 +147,11 @@ function drawLogo(logo) {
 function drawStar(star, selected) {
   if (selected && star.radius) {
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 220, 80, 0.18)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
+    ctx.strokeStyle = 'rgba(255, 220, 80, 0.55)';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([10, 8]);
+    ctx.shadowColor = 'rgba(255, 220, 80, 0.4)';
+    ctx.shadowBlur = 6;
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
     ctx.stroke();
