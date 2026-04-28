@@ -1392,12 +1392,7 @@ function shutdownAudio() {
 }
 
 function spawnInitialLogo() {
-  addLogoFromSerialized({
-    hue: 200,
-    trail: 'off',
-    soundEnabled: false,
-    droneEnabled: false,
-  });
+  addLogo(false);
   selectedLogoId = null;
   syncGlobalControls();
   syncInspector();
