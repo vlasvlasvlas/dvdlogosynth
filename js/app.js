@@ -1398,14 +1398,44 @@ function spawnInitialLogo() {
   syncInspector();
 }
 
+let splashDismissed = false;
+function setupSplash() {
+  const splash = document.getElementById('splash');
+  if (!splash) return;
+
+  const dismiss = async () => {
+    if (splashDismissed) return;
+    splashDismissed = true;
+    splash.removeEventListener('pointerdown', dismiss);
+    splash.removeEventListener('keydown', onKey);
+
+    await audio.boot();
+    spawnInitialLogo();
+
+    splash.classList.add('hidden-fade');
+    setTimeout(() => splash.remove(), 400);
+  };
+
+  const onKey = (event) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      dismiss();
+    }
+  };
+
+  splash.addEventListener('pointerdown', dismiss);
+  splash.addEventListener('keydown', onKey);
+  splash.focus();
+}
+
 function init() {
   handleResize();
   window.addEventListener('resize', handleResize);
 
   bindUI();
+  setupSplash();
 
   syncGlobalControls();
-  spawnInitialLogo();
 
   window.addEventListener('pagehide', shutdownAudio);
   window.addEventListener('beforeunload', shutdownAudio);
