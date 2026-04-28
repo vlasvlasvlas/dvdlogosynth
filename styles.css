@@ -53,16 +53,16 @@ select {
 .navbar-title {
   margin-right: auto;
   padding-left: 4px;
-  font-size: 13px;
-  letter-spacing: 2px;
+  font-size: 11px;
+  letter-spacing: 1.5px;
   color: #777;
   text-transform: uppercase;
   user-select: none;
 }
 
 .navbar .btn {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -70,7 +70,7 @@ select {
   border-radius: 0;
   background: transparent;
   color: #999;
-  font-size: 18px;
+  font-size: 15px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
 }
@@ -85,7 +85,7 @@ select {
 }
 
 .navbar .btn.btn-star {
-  font-size: 13px;
+  font-size: 11px;
   letter-spacing: -1px;
   color: #c9a23a;
 }
@@ -96,7 +96,7 @@ select {
 }
 
 .navbar .btn.btn-corners {
-  font-size: 18px;
+  font-size: 15px;
   color: #6aa9c9;
 }
 
@@ -430,9 +430,21 @@ select {
     width: 100%;
   }
 
+  .navbar-title {
+    display: none;
+  }
+
   .navbar .btn {
-    width: 32px;
-    height: 32px;
-    font-size: 16px;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+  }
+
+  .navbar .btn.btn-star {
+    font-size: 10px;
+  }
+
+  .navbar .btn.btn-corners {
+    font-size: 13px;
   }
 }
