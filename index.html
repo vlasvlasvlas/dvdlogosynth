@@ -87,7 +87,8 @@
         <div id="controls" class="hidden">
           <div class="control-row">
             <label>Speed</label>
-            <input id="speedInput" type="range" min="60" max="720" step="1" />
+            <input id="speedInput" type="range" min="-720" max="720" step="1" />
+            <span id="speedReadout" class="readout">+0</span>
           </div>
           <div class="control-row">
             <label>Trail</label>
@@ -208,6 +209,7 @@
       <dl>
         <dt>+ / −</dt><dd>Agregar / quitar logo (max 64)</dd>
         <dt>Click en logo</dt><dd>Seleccionar y editar (color, sonido, drone, trail, delay, reverb)</dd>
+        <dt>Speed</dt><dd>Rango -720 a +720. 0 frena el logo, negativo invierte la direccion (reverse).</dd>
       </dl>
 
       <h3>Estrellas (gravedad)</h3>

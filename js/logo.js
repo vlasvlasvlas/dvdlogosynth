@@ -56,6 +56,35 @@ export class Logo {
     this.vy = Math.sin(angle) * safeSpeed;
   }
 
+  setSignedSpeed(nextSpeed) {
+    const v = clamp(nextSpeed, -CONFIG.maxSpeed, CONFIG.maxSpeed);
+    const currentMag = Math.hypot(this.vx, this.vy);
+
+    if (v === 0) {
+      if (currentMag > 0.0001) {
+        this._pausedAngle = Math.atan2(this.vy, this.vx);
+      }
+      this.vx = 0;
+      this.vy = 0;
+      return;
+    }
+
+    let angle;
+    if (currentMag > 0.0001) {
+      angle = Math.atan2(this.vy, this.vx);
+    } else {
+      angle = this._pausedAngle != null ? this._pausedAngle : 0;
+    }
+
+    if (v < 0) {
+      angle += Math.PI;
+    }
+
+    const mag = Math.abs(v);
+    this.vx = Math.cos(angle) * mag;
+    this.vy = Math.sin(angle) * mag;
+  }
+
   serialize() {
     return {
       x: this.x,

@@ -63,6 +63,7 @@ const channelCountLabel = document.getElementById('channelCountLabel');
 const selectedChannelLabel = document.getElementById('selectedChannelLabel');
 
 const speedInput = document.getElementById('speedInput');
+const speedReadout = document.getElementById('speedReadout');
 const trailInput = document.getElementById('trailInput');
 const soundEnabledInput = document.getElementById('soundEnabledInput');
 const waveInput = document.getElementById('waveInput');
@@ -347,8 +348,8 @@ function createLogoData(seed, spatial = null) {
   const hasVelocity = Number.isFinite(parsedVx) && Number.isFinite(parsedVy);
 
   const speed = Number.isFinite(Number(spatial?.speed))
-    ? clamp(Number(spatial?.speed), CONFIG.minSpeed, CONFIG.maxSpeed)
-    : randomBetween(70, 100);
+    ? clamp(Number(spatial?.speed), -CONFIG.maxSpeed, CONFIG.maxSpeed)
+    : 100;
   const angle = Number.isFinite(Number(spatial?.angle))
     ? Number(spatial?.angle)
     : randomBetween(0, Math.PI * 2);
@@ -553,6 +554,7 @@ function syncInspector() {
   selectedChannelLabel.textContent = logo.name;
 
   speedInput.value = String(Math.round(logo.speed));
+  speedReadout.textContent = formatForce(logo.speed);
   trailInput.value = logo.trail;
   trailLengthInput.value = String(Math.round(logo.trailLength));
   soundEnabledInput.checked = logo.soundEnabled;
@@ -1228,8 +1230,10 @@ function bindUI() {
   };
 
   speedInput.addEventListener('input', () => {
+    const value = Number(speedInput.value);
+    speedReadout.textContent = formatForce(value);
     applyToSelected((logo) => {
-      logo.setSpeed(Number(speedInput.value));
+      logo.setSignedSpeed(value);
     });
   });
 
