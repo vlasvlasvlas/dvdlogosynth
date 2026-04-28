@@ -1,4 +1,11 @@
-import { CONFIG, TRAIL_MODES, WAVE_TYPES, STAR_DEFAULT_MASS, STAR_MAX } from './config.js';
+import {
+  CONFIG,
+  TRAIL_MODES,
+  WAVE_TYPES,
+  STAR_DEFAULT_MASS,
+  STAR_DEFAULT_RADIUS,
+  STAR_MAX,
+} from './config.js';
 import { clamp, randomBetween } from './utils.js';
 import { Logo, makeLogoName, cleanLogoName, logoCanDrone } from './logo.js';
 import { AudioEngine } from './audio.js';
@@ -14,6 +21,10 @@ const canvas = document.getElementById('stage');
 
 const inspector = document.getElementById('inspector');
 const controlsEl = document.getElementById('controls');
+const starControlsEl = document.getElementById('starControls');
+const starForceInput = document.getElementById('starForceInput');
+const starRadiusInput = document.getElementById('starRadiusInput');
+const deleteStarBtn = document.getElementById('deleteStarBtn');
 
 const addBtn = document.getElementById('addBtn');
 const removeBtn = document.getElementById('removeBtn');
@@ -64,7 +75,11 @@ let logoCounter = 0;
 const logos = [];
 let selectedLogoId = null;
 
+let starCounter = 0;
 const stars = [];
+let selectedStarId = null;
+let dragStarId = null;
+const dragOffset = { x: 0, y: 0 };
 
 const state = {
   collisionsEnabled: true,
@@ -99,11 +114,15 @@ function addStar() {
   if (stars.length >= STAR_MAX) {
     return false;
   }
+  const id = ++starCounter;
   stars.push({
+    id,
     x: randomBetween(width * 0.15, width * 0.85),
     y: randomBetween(height * 0.15, height * 0.85),
     mass: STAR_DEFAULT_MASS,
+    radius: STAR_DEFAULT_RADIUS,
   });
+  selectStar(id);
   return true;
 }
 
@@ -111,8 +130,33 @@ function removeStar() {
   if (stars.length === 0) {
     return false;
   }
-  stars.pop();
+  const removed = stars.pop();
+  if (removed && selectedStarId === removed.id) {
+    selectedStarId = null;
+    syncInspector();
+  }
   return true;
+}
+
+function getSelectedStar() {
+  return stars.find((s) => s.id === selectedStarId) || null;
+}
+
+function selectStar(id) {
+  selectedStarId = id;
+  selectedLogoId = null;
+  syncInspector();
+  renderChannelList();
+}
+
+function deleteStar(id) {
+  const idx = stars.findIndex((s) => s.id === id);
+  if (idx < 0) return;
+  stars.splice(idx, 1);
+  if (selectedStarId === id) {
+    selectedStarId = null;
+    syncInspector();
+  }
 }
 
 function clampLogoInBounds(logo) {
@@ -329,6 +373,9 @@ function clearScene() {
   logoCounter = 0;
   selectedLogoId = null;
   stars.length = 0;
+  starCounter = 0;
+  selectedStarId = null;
+  dragStarId = null;
   syncGlobalControls();
 }
 
@@ -338,18 +385,32 @@ function getSelectedLogo() {
 
 function selectLogo(id) {
   selectedLogoId = id;
+  selectedStarId = null;
   syncInspector();
   renderChannelList();
 }
 
 function syncInspector() {
   const logo = getSelectedLogo();
-  if (!logo) {
+  const star = getSelectedStar();
+
+  if (star) {
     controlsEl.classList.add('hidden');
-    selectedChannelLabel.textContent = 'No logo selected';
+    starControlsEl.classList.remove('hidden');
+    selectedChannelLabel.textContent = `Star #${String(star.id).padStart(2, '0')}`;
+    starForceInput.value = String(Math.round(star.mass));
+    starRadiusInput.value = String(Math.round(star.radius));
     return;
   }
 
+  if (!logo) {
+    controlsEl.classList.add('hidden');
+    starControlsEl.classList.add('hidden');
+    selectedChannelLabel.textContent = 'Nothing selected';
+    return;
+  }
+
+  starControlsEl.classList.add('hidden');
   controlsEl.classList.remove('hidden');
   selectedChannelLabel.textContent = logo.name;
 
@@ -615,7 +676,7 @@ function serializeScene() {
       delayReturn: state.delayReturn,
     },
     logos: logos.map((logo) => logo.serialize()),
-    stars: stars.map((s) => ({ x: s.x, y: s.y, mass: s.mass })),
+    stars: stars.map((s) => ({ x: s.x, y: s.y, mass: s.mass, radius: s.radius })),
   };
 }
 
@@ -673,9 +734,11 @@ function loadSceneFromObject(scene) {
       const sy = Number(s?.y);
       if (Number.isFinite(sx) && Number.isFinite(sy)) {
         stars.push({
+          id: ++starCounter,
           x: clamp(sx, 0, width),
           y: clamp(sy, 0, height),
-          mass: Number(s?.mass) || STAR_DEFAULT_MASS,
+          mass: clamp(Number(s?.mass) || STAR_DEFAULT_MASS, 10000, 1500000),
+          radius: clamp(Number(s?.radius) || STAR_DEFAULT_RADIUS, 50, 1500),
         });
       }
     }
@@ -735,7 +798,7 @@ function animate(now) {
     audio.syncDrone(logo);
   }
 
-  drawFrame(logos, stars);
+  drawFrame(logos, stars, selectedStarId);
   requestAnimationFrame(animate);
 }
 
@@ -762,6 +825,28 @@ function bindUI() {
   removeStarBtn.addEventListener('click', async () => {
     await audio.boot();
     if (removeStar()) audio.playRemoveBlip();
+  });
+
+  starForceInput.addEventListener('input', () => {
+    const star = getSelectedStar();
+    if (!star) return;
+    star.mass = Number(starForceInput.value);
+    state.sceneLabel = 'Custom';
+  });
+
+  starRadiusInput.addEventListener('input', () => {
+    const star = getSelectedStar();
+    if (!star) return;
+    star.radius = Number(starRadiusInput.value);
+    state.sceneLabel = 'Custom';
+  });
+
+  deleteStarBtn.addEventListener('click', async () => {
+    const star = getSelectedStar();
+    if (!star) return;
+    await audio.boot();
+    deleteStar(star.id);
+    audio.playRemoveBlip();
   });
 
   configBtn.addEventListener('click', () => {
@@ -882,33 +967,76 @@ function bindUI() {
     state.sceneLabel = 'Custom';
   });
 
-  canvas.addEventListener('click', async (event) => {
-    await audio.boot();
+  const canvasToScene = (event) => {
     const rect = canvas.getBoundingClientRect();
-    const clickX = (event.clientX - rect.left) * (width / rect.width);
-    const clickY = (event.clientY - rect.top) * (height / rect.height);
+    return {
+      x: (event.clientX - rect.left) * (width / rect.width),
+      y: (event.clientY - rect.top) * (height / rect.height),
+    };
+  };
 
-    let found = null;
+  canvas.addEventListener('pointerdown', async (event) => {
+    await audio.boot();
+    const { x: px, y: py } = canvasToScene(event);
+
+    let starHit = null;
+    let starHitDist2 = 24 * 24;
+    for (let i = stars.length - 1; i >= 0; i -= 1) {
+      const s = stars[i];
+      const dx = px - s.x;
+      const dy = py - s.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < starHitDist2) {
+        starHitDist2 = d2;
+        starHit = s;
+      }
+    }
+
+    if (starHit) {
+      dragStarId = starHit.id;
+      dragOffset.x = px - starHit.x;
+      dragOffset.y = py - starHit.y;
+      try { canvas.setPointerCapture(event.pointerId); } catch (_) {}
+      selectStar(starHit.id);
+      inspector.classList.add('open');
+      return;
+    }
+
+    let logoHit = null;
     for (let i = logos.length - 1; i >= 0; i -= 1) {
       const logo = logos[i];
-      if (
-        clickX >= logo.x &&
-        clickX <= logo.x + logo.w &&
-        clickY >= logo.y &&
-        clickY <= logo.y + logo.h
-      ) {
-        found = logo;
+      if (px >= logo.x && px <= logo.x + logo.w && py >= logo.y && py <= logo.y + logo.h) {
+        logoHit = logo;
         break;
       }
     }
-    if (found) {
-      selectLogo(found.id);
+    if (logoHit) {
+      selectLogo(logoHit.id);
       inspector.classList.add('open');
     } else {
       selectedLogoId = null;
+      selectedStarId = null;
       syncInspector();
     }
   });
+
+  canvas.addEventListener('pointermove', (event) => {
+    if (dragStarId == null) return;
+    const star = stars.find((s) => s.id === dragStarId);
+    if (!star) return;
+    const { x: px, y: py } = canvasToScene(event);
+    star.x = clamp(px - dragOffset.x, 0, width);
+    star.y = clamp(py - dragOffset.y, 0, height);
+  });
+
+  const endDrag = (event) => {
+    if (dragStarId == null) return;
+    dragStarId = null;
+    try { canvas.releasePointerCapture(event.pointerId); } catch (_) {}
+  };
+
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
 
   const applyToSelected = (applyFn) => {
     const logo = getSelectedLogo();

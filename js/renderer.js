@@ -144,17 +144,28 @@ function drawLogo(logo) {
   ctx.restore();
 }
 
-function drawStar(x, y, r) {
+function drawStar(star, selected) {
+  if (selected && star.radius) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 220, 80, 0.18)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
   ctx.save();
-  ctx.fillStyle = 'rgba(255, 220, 80, 0.95)';
+  ctx.fillStyle = selected ? 'rgba(255, 240, 140, 1)' : 'rgba(255, 220, 80, 0.95)';
   ctx.shadowColor = 'rgba(255, 220, 80, 0.9)';
-  ctx.shadowBlur = 14;
+  ctx.shadowBlur = selected ? 22 : 14;
+  const r = selected ? 13 : 11;
   ctx.beginPath();
   for (let i = 0; i < 10; i += 1) {
     const angle = (i * Math.PI) / 5 - Math.PI / 2;
     const radius = i % 2 === 0 ? r : r * 0.42;
-    const px = x + Math.cos(angle) * radius;
-    const py = y + Math.sin(angle) * radius;
+    const px = star.x + Math.cos(angle) * radius;
+    const py = star.y + Math.sin(angle) * radius;
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {
@@ -166,7 +177,7 @@ function drawStar(x, y, r) {
   ctx.restore();
 }
 
-export function drawFrame(logos, stars = []) {
+export function drawFrame(logos, stars = [], selectedStarId = null) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, width, height);
 
@@ -175,6 +186,6 @@ export function drawFrame(logos, stars = []) {
   }
 
   for (const star of stars) {
-    drawStar(star.x, star.y, 11);
+    drawStar(star, star.id === selectedStarId);
   }
 }
