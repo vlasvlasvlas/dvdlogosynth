@@ -1333,52 +1333,6 @@ function bindUI() {
     });
   });
 
-  window.addEventListener('keydown', async (event) => {
-    const tag = event.target.tagName;
-    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') {
-      return;
-    }
-
-    if (event.key === '+' || event.key === '=') {
-      event.preventDefault();
-      await audio.boot();
-      const before = logos.length;
-      addLogo(true);
-      if (logos.length > before) audio.playAddPing();
-    }
-
-    if (event.key === '-') {
-      event.preventDefault();
-      await audio.boot();
-      const before = logos.length;
-      removeLogo();
-      if (logos.length < before) audio.playRemoveBlip();
-    }
-
-    if (event.key === '?') {
-      event.preventDefault();
-      helpDialog.showModal();
-    }
-
-    if (event.key.toLowerCase() === 'p') {
-      state.performanceMode = !state.performanceMode;
-      audio.setPerformanceMode(state.performanceMode);
-      state.sceneLabel = 'Custom';
-      syncGlobalControls();
-    }
-
-    if (event.key.toLowerCase() === 'c') {
-      state.collisionsEnabled = !state.collisionsEnabled;
-      collisionsInput.checked = state.collisionsEnabled;
-      state.sceneLabel = 'Custom';
-      syncGlobalControls();
-    }
-
-    if (event.key.toLowerCase() === 'r') {
-      await audio.boot();
-      randomizeScene();
-    }
-  });
 }
 
 function shutdownAudio() {
