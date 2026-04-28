@@ -11,9 +11,10 @@ https://vlasvlasvlas.github.io/dvdlogosynth
 1. Click o tap en la escena para habilitar el audio (los navegadores requieren un gesto del usuario antes de empezar audio).
 2. `+` / `-` para sumar o quitar logos. Cada accion suena: ping agudo al sumar, blip grave al quitar.
 3. `★+` / `★-` para sumar o quitar estrellas de gravedad.
-4. Click en un logo o en una estrella para seleccionar y editar.
-5. Drag de una estrella para moverla por la escena.
-6. `?` abre la ayuda. `⚙` abre el panel de configuracion.
+4. `⛶` toggle del modo iman en esquinas: instala / quita 4 estrellas potentes en las esquinas y desactiva colisiones mientras esta activo.
+5. Click en un logo o en una estrella para seleccionar y editar.
+6. Drag de una estrella para moverla por la escena.
+7. `?` abre la ayuda. `⚙` abre el panel de configuracion.
 
 ### Logos
 
@@ -33,6 +34,16 @@ Por estrella:
 - **Display**: estrella + anillo (default), solo estrella, u oculta (la fisica sigue activa).
 
 Las estrellas son drageables: tocalas y arrastralas para reposicionar.
+
+#### Modo iman en esquinas (⛶)
+
+Toggle en el navbar. Al prenderlo:
+
+- Instala 4 estrellas en las 4 esquinas con `force=+100` y `radio` al 25% del slider.
+- Apaga las colisiones logo-logo (al apagar el modo se restaura el estado previo).
+- Al apagarlo se quitan solo esas 4 estrellas; las que el usuario haya creado aparte siguen.
+
+Idea: sacarse las ganas viejas del DVD logo que nunca llegaba a la esquina.
 
 ### Presets
 
@@ -109,6 +120,7 @@ Hecho:
 - Reverb mas espacial (impulso 4.5s, send escalado per-voice).
 - Trail per-logo con length variable (2-1000) y modo line-only.
 - Estrellas de gravedad drageables con force signed (-100..+100), radius y modos de display.
+- Modo iman en esquinas (⛶): toggle que prende 4 estrellas potentes en las esquinas y apaga colisiones.
 - Cleanup de AudioContext en pagehide / beforeunload.
 
 Pendiente:

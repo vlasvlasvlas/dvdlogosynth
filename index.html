@@ -10,10 +10,12 @@
     <canvas id="stage" aria-label="Escena de logos DVD"></canvas>
 
     <nav class="navbar">
+      <span class="navbar-title">DVDLOGOSYNTH</span>
       <button id="addBtn" class="btn" type="button" title="Agregar logo (+)">+</button>
       <button id="removeBtn" class="btn" type="button" title="Quitar logo (-)">−</button>
       <button id="addStarBtn" class="btn btn-star" type="button" title="Agregar estrella de gravedad">★+</button>
       <button id="removeStarBtn" class="btn btn-star" type="button" title="Quitar estrella">★−</button>
+      <button id="cornersModeBtn" class="btn btn-corners" type="button" title="Modo iman en esquinas (anti-fuga)" aria-pressed="false">⛶</button>
       <button id="helpBtn" class="btn" type="button" title="Ayuda (?)">?</button>
       <button id="configBtn" class="btn" type="button" title="Configuración (⚙)">⚙</button>
     </nav>
@@ -209,6 +211,7 @@
         <dt>Force</dt><dd>+ atrae, − repele, 0 sin efecto (rango -100 a +100)</dd>
         <dt>Radius</dt><dd>Zona de influencia</dd>
         <dt>Display</dt><dd>Estrella + anillo, solo estrella, u oculta (la fisica sigue)</dd>
+        <dt>⛶ Iman en esquinas</dt><dd>Modo anti-fuga: prende/apaga 4 estrellas potentes (force +100, radio 25%) en las 4 esquinas. Mientras esta activo se desactivan las colisiones logo-logo (al apagarlo se restauran como estaban).</dd>
       </dl>
 
       <h3>Atajos</h3>
