@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dvdlogosynth</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="stage" aria-label="Escena de logos DVD"></canvas>
+
+    <nav class="navbar">
+      <button id="addBtn" class="btn" type="button" title="Agregar logo (+)">+</button>
+      <button id="removeBtn" class="btn" type="button" title="Quitar logo (-)">−</button>
+      <button id="helpBtn" class="btn" type="button" title="Ayuda (?)">?</button>
+      <button id="configBtn" class="btn" type="button" title="Configuración (⚙)">⚙</button>
+    </nav>
+
+    <div class="osd">
+      <span id="logoCountReadout"></span>
+      <span id="fpsReadout"></span>
+    </div>
+
+    <aside id="inspector" class="sidebar">
+      <div class="sidebar-header">
+        <span>Config</span>
+        <button id="sidebarCloseBtn" class="sidebar-close" type="button">✕</button>
+      </div>
+
+      <!-- MASTER -->
+      <div class="section">
+        <div class="section-title">Master</div>
+        <div class="control-row">
+          <label>Volume</label>
+          <input id="masterGainInput" type="range" min="0" max="1.2" step="0.01" />
+        </div>
+        <div class="control-row">
+          <label>Collisions</label>
+          <input id="collisionsInput" type="checkbox" checked />
+        </div>
+      </div>
+
+      <!-- LOGOS -->
+      <div class="section">
+        <div class="section-title">Logos <span id="channelCountLabel">0/64</span></div>
+        <div id="channelList" class="channel-list"></div>
+      </div>
+
+      <!-- SELECTED LOGO -->
+      <div class="section">
+        <div class="section-title" id="selectedChannelLabel">No logo selected</div>
+
+        <div id="controls" class="hidden">
+          <div class="control-row">
+            <label>Speed</label>
+            <input id="speedInput" type="range" min="60" max="720" step="1" />
+          </div>
+          <div class="control-row">
+            <label>Trail</label>
+            <select id="trailInput">
+            <option value="off">Off</option>
+              <option value="ghost">Ghost</option>
+              <option value="line">Line</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Bounce sound</label>
+            <input id="soundEnabledInput" type="checkbox" />
+          </div>
+          <div class="control-row">
+            <label>Wave</label>
+            <select id="waveInput">
+              <option value="sine">Sine</option>
+              <option value="triangle">Triangle</option>
+              <option value="sawtooth">Saw</option>
+              <option value="square">Square</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Reverb</label>
+            <input id="reverbSendInput" type="range" min="0" max="1" step="0.01" />
+          </div>
+          <div class="control-row">
+            <label>Delay</label>
+            <input id="delaySendInput" type="range" min="0" max="1" step="0.01" />
+          </div>
+          <div class="control-row">
+            <label>Drone</label>
+            <input id="droneEnabledInput" type="checkbox" />
+          </div>
+          <div class="control-row">
+            <label>Drone vol</label>
+            <input id="droneVolumeInput" type="range" min="0" max="1" step="0.01" />
+          </div>
+          <div class="control-row">
+            <label>Frequency</label>
+            <input id="droneFreqInput" type="range" min="40" max="1200" step="1" />
+          </div>
+          <div class="control-row">
+            <label>Drone wave</label>
+            <select id="droneWaveInput">
+              <option value="sawtooth">Saw</option>
+              <option value="triangle">Triangle</option>
+              <option value="sine">Sine</option>
+              <option value="square">Square</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Filter</label>
+            <select id="droneFilterTypeInput">
+              <option value="lowpass">Lowpass</option>
+              <option value="highpass">Highpass</option>
+              <option value="bandpass">Bandpass</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label>Cutoff</label>
+            <input id="droneFilterCutoffInput" type="range" min="60" max="8000" step="1" />
+          </div>
+          <div class="control-row">
+            <label>Resonance</label>
+            <input id="droneFilterQInput" type="range" min="0.1" max="20" step="0.1" />
+          </div>
+          <div class="control-row">
+            <label>LFO rate</label>
+            <input id="droneLfoRateInput" type="range" min="0.01" max="20" step="0.01" />
+          </div>
+          <div class="control-row">
+            <label>LFO depth</label>
+            <input id="droneLfoDepthInput" type="range" min="0" max="1" step="0.01" />
+          </div>
+        </div>
+      </div>
+
+      <!-- SCENE (secondary) -->
+      <div class="section">
+        <div class="section-title">Scene</div>
+        <div class="control-row">
+          <label>Preset</label>
+          <select id="presetSelect">
+            <option value="solo" selected>Solo</option>
+            <option value="classic">Classic</option>
+            <option value="neon">Neon</option>
+            <option value="drone">Drone</option>
+          </select>
+        </div>
+        <div class="strip-actions">
+          <button id="applyPresetBtn" class="btn" type="button">Apply</button>
+          <button id="randomizeBtn" class="btn" type="button">Random</button>
+        </div>
+        <div class="strip-actions">
+          <button id="saveSceneBtn" class="btn" type="button">Save</button>
+          <button id="loadSceneBtn" class="btn" type="button">Open</button>
+          <input id="loadSceneInput" type="file" accept="application/json,.json" class="hidden" />
+        </div>
+      </div>
+
+    </aside>
+
+    <dialog id="helpDialog" class="help-dialog">
+      <h2>dvdlogosynth</h2>
+      <p>Instrumento audiovisual. Cada logo DVD rebota, cambia de color y suena. Click en un logo para editarlo.</p>
+      <dl>
+        <dt>+ / −</dt><dd>Agregar / quitar logos</dd>
+        <dt>Click en logo</dt><dd>Seleccionar y editar</dd>
+        <dt>⚙</dt><dd>Abrir configuración</dd>
+        <dt>R</dt><dd>Randomize</dd>
+      </dl>
+      <p><a href="https://github.com/vlasvlasvlas/dvdlogosynth" target="_blank" rel="noopener">GitHub →</a></p>
+      <button id="closeHelpBtn" class="close-btn" type="button">Cerrar</button>
+    </dialog>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
