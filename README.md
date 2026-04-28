@@ -1,6 +1,6 @@
 # dvdlogosynth
 
-Instrumento audiovisual web: logos DVD rebotando donde cada logo es una voz visual y sonora con identidad propia (color, trayectoria, timbre, drone).
+logos DVD rebotando donde cada logo es un sinte con identidad propia (color, trayectoria, timbre, drone).
 
 ## Demo
 
