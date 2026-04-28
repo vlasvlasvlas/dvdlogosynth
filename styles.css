@@ -189,6 +189,14 @@ select {
   accent-color: #888;
 }
 
+.readout {
+  min-width: 36px;
+  text-align: right;
+  font-size: 11px;
+  color: #aaa;
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Channel Bay ── */
 .channel-list {
   max-height: 200px;
@@ -322,6 +330,14 @@ select {
   margin: 0 0 10px;
   color: #fff;
   font-size: 18px;
+}
+
+.help-dialog h3 {
+  margin: 14px 0 6px;
+  color: #ccc;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .help-dialog p {
