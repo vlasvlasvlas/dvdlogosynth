@@ -52,14 +52,6 @@ Idea: sacarse las ganas viejas del DVD logo que nunca llegaba a la esquina.
 - **Neon**: nueve logos con colisiones, reverb y delay altos.
 - **Drone**: seis logos en frecuencias afinadas con drone activo.
 
-### Atajos de teclado
-
-- `+` / `-` agregar / quitar logo
-- `?` ayuda
-- `R` randomize
-- `P` performance mode (reduce coste de FX y trails al caer FPS)
-- `C` toggle de colisiones logo-logo
-
 ## Stack
 
 HTML + CSS + JavaScript vanilla con ES modules. Sin build, sin bundler, sin dependencias en runtime.
