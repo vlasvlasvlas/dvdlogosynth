@@ -97,10 +97,13 @@ function drawTrail(logo) {
     return;
   }
 
-  if (logo.trail === 'line') {
+  if (logo.trail === 'line' || logo.trail === 'line-only') {
     ctx.save();
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = `hsla(${logo.hue}, 100%, 72%, 0.44)`;
+    const opaque = logo.trail === 'line-only';
+    ctx.lineWidth = opaque ? 1.5 : 2;
+    ctx.strokeStyle = opaque
+      ? `hsla(${logo.hue}, 100%, 72%, 0.95)`
+      : `hsla(${logo.hue}, 100%, 72%, 0.44)`;
     ctx.beginPath();
     for (let i = 0; i < logo.history.length; i += 1) {
       const p = logo.history[i];
@@ -133,16 +136,45 @@ function drawTrail(logo) {
 
 function drawLogo(logo) {
   drawTrail(logo);
+  if (logo.trail === 'line-only') {
+    return;
+  }
   ctx.save();
   drawLogoImage(logo.x, logo.y, logo.w, logo.h, logo.hue);
   ctx.restore();
 }
 
-export function drawFrame(logos) {
+function drawStar(x, y, r) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255, 220, 80, 0.95)';
+  ctx.shadowColor = 'rgba(255, 220, 80, 0.9)';
+  ctx.shadowBlur = 14;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i += 1) {
+    const angle = (i * Math.PI) / 5 - Math.PI / 2;
+    const radius = i % 2 === 0 ? r : r * 0.42;
+    const px = x + Math.cos(angle) * radius;
+    const py = y + Math.sin(angle) * radius;
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+export function drawFrame(logos, stars = []) {
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, width, height);
 
   for (const logo of logos) {
     drawLogo(logo);
+  }
+
+  for (const star of stars) {
+    drawStar(star.x, star.y, 11);
   }
 }
