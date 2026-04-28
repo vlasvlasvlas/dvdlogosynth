@@ -2,8 +2,10 @@ import {
   CONFIG,
   TRAIL_MODES,
   WAVE_TYPES,
-  STAR_DEFAULT_MASS,
+  STAR_DEFAULT_FORCE,
   STAR_DEFAULT_RADIUS,
+  STAR_DEFAULT_DISPLAY,
+  STAR_DISPLAY_MODES,
   STAR_MAX,
 } from './config.js';
 import { clamp, randomBetween } from './utils.js';
@@ -24,6 +26,7 @@ const controlsEl = document.getElementById('controls');
 const starControlsEl = document.getElementById('starControls');
 const starForceInput = document.getElementById('starForceInput');
 const starRadiusInput = document.getElementById('starRadiusInput');
+const starDisplayInput = document.getElementById('starDisplayInput');
 const deleteStarBtn = document.getElementById('deleteStarBtn');
 
 const addBtn = document.getElementById('addBtn');
@@ -119,8 +122,9 @@ function addStar() {
     id,
     x: randomBetween(width * 0.15, width * 0.85),
     y: randomBetween(height * 0.15, height * 0.85),
-    mass: STAR_DEFAULT_MASS,
+    force: STAR_DEFAULT_FORCE,
     radius: STAR_DEFAULT_RADIUS,
+    display: STAR_DEFAULT_DISPLAY,
   });
   selectStar(id);
   return true;
@@ -398,8 +402,9 @@ function syncInspector() {
     controlsEl.classList.add('hidden');
     starControlsEl.classList.remove('hidden');
     selectedChannelLabel.textContent = `Star #${String(star.id).padStart(2, '0')}`;
-    starForceInput.value = String(Math.round(star.mass));
+    starForceInput.value = String(Math.round(star.force));
     starRadiusInput.value = String(Math.round(star.radius));
+    starDisplayInput.value = star.display || 'full';
     return;
   }
 
@@ -676,7 +681,13 @@ function serializeScene() {
       delayReturn: state.delayReturn,
     },
     logos: logos.map((logo) => logo.serialize()),
-    stars: stars.map((s) => ({ x: s.x, y: s.y, mass: s.mass, radius: s.radius })),
+    stars: stars.map((s) => ({
+      x: s.x,
+      y: s.y,
+      force: s.force,
+      radius: s.radius,
+      display: s.display || 'full',
+    })),
   };
 }
 
@@ -733,12 +744,20 @@ function loadSceneFromObject(scene) {
       const sx = Number(s?.x);
       const sy = Number(s?.y);
       if (Number.isFinite(sx) && Number.isFinite(sy)) {
+        const rawForce = Number(s?.force);
+        const legacyMass = Number(s?.mass);
+        const force = Number.isFinite(rawForce)
+          ? clamp(rawForce, -100, 100)
+          : Number.isFinite(legacyMass)
+            ? clamp(legacyMass / 11000, -100, 100)
+            : STAR_DEFAULT_FORCE;
         stars.push({
           id: ++starCounter,
           x: clamp(sx, 0, width),
           y: clamp(sy, 0, height),
-          mass: clamp(Number(s?.mass) || STAR_DEFAULT_MASS, 10000, 1500000),
+          force,
           radius: clamp(Number(s?.radius) || STAR_DEFAULT_RADIUS, 50, 1500),
+          display: STAR_DISPLAY_MODES.includes(s?.display) ? s.display : 'full',
         });
       }
     }
@@ -830,7 +849,7 @@ function bindUI() {
   starForceInput.addEventListener('input', () => {
     const star = getSelectedStar();
     if (!star) return;
-    star.mass = Number(starForceInput.value);
+    star.force = Number(starForceInput.value);
     state.sceneLabel = 'Custom';
   });
 
@@ -838,6 +857,15 @@ function bindUI() {
     const star = getSelectedStar();
     if (!star) return;
     star.radius = Number(starRadiusInput.value);
+    state.sceneLabel = 'Custom';
+  });
+
+  starDisplayInput.addEventListener('change', () => {
+    const star = getSelectedStar();
+    if (!star) return;
+    star.display = STAR_DISPLAY_MODES.includes(starDisplayInput.value)
+      ? starDisplayInput.value
+      : 'full';
     state.sceneLabel = 'Custom';
   });
 
@@ -983,6 +1011,7 @@ function bindUI() {
     let starHitDist2 = 24 * 24;
     for (let i = stars.length - 1; i >= 0; i -= 1) {
       const s = stars[i];
+      if ((s.display || 'full') === 'off') continue;
       const dx = px - s.x;
       const dy = py - s.y;
       const d2 = dx * dx + dy * dy;

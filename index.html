@@ -55,11 +55,19 @@
         <div id="starControls" class="hidden">
           <div class="control-row">
             <label>Force</label>
-            <input id="starForceInput" type="range" min="10000" max="1100000" step="1000" />
+            <input id="starForceInput" type="range" min="-100" max="100" step="1" />
           </div>
           <div class="control-row">
             <label>Radius</label>
             <input id="starRadiusInput" type="range" min="50" max="1500" step="1" />
+          </div>
+          <div class="control-row">
+            <label>Display</label>
+            <select id="starDisplayInput">
+              <option value="full">Star + ring</option>
+              <option value="star">Star only</option>
+              <option value="off">Hidden</option>
+            </select>
           </div>
           <div class="strip-actions">
             <button id="deleteStarBtn" class="btn" type="button">Delete star</button>

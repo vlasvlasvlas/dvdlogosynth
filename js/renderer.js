@@ -145,21 +145,38 @@ function drawLogo(logo) {
 }
 
 function drawStar(star, selected) {
-  if (selected && star.radius) {
+  const display = star.display || 'full';
+  if (display === 'off') {
+    return;
+  }
+
+  const force = typeof star.force === 'number' ? star.force : 50;
+  const repel = force < 0;
+  const baseHue = repel ? 'rgba(255, 110, 110' : 'rgba(255, 220, 80';
+
+  if (display === 'full' && star.radius) {
     ctx.save();
-    ctx.strokeStyle = 'rgba(255, 220, 80, 0.55)';
-    ctx.lineWidth = 2.5;
+    if (selected) {
+      ctx.strokeStyle = `${baseHue}, 0.6)`;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = `${baseHue}, 0.4)`;
+      ctx.shadowBlur = 6;
+    } else {
+      ctx.strokeStyle = `${baseHue}, 0.28)`;
+      ctx.lineWidth = 1.5;
+    }
     ctx.setLineDash([10, 8]);
-    ctx.shadowColor = 'rgba(255, 220, 80, 0.4)';
-    ctx.shadowBlur = 6;
     ctx.beginPath();
     ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
     ctx.stroke();
     ctx.restore();
   }
+
   ctx.save();
-  ctx.fillStyle = selected ? 'rgba(255, 240, 140, 1)' : 'rgba(255, 220, 80, 0.95)';
-  ctx.shadowColor = 'rgba(255, 220, 80, 0.9)';
+  ctx.fillStyle = selected
+    ? (repel ? 'rgba(255, 180, 180, 1)' : 'rgba(255, 240, 140, 1)')
+    : `${baseHue}, 0.95)`;
+  ctx.shadowColor = `${baseHue}, 0.9)`;
   ctx.shadowBlur = selected ? 22 : 14;
   const r = selected ? 13 : 11;
   ctx.beginPath();
