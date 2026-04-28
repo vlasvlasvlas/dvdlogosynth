@@ -63,7 +63,7 @@ export function updatePhysics(dt, sceneCtx) {
       logo.history.length = 0;
     } else {
       logo.history.push({ x: logo.cx, y: logo.cy, w: logo.w, h: logo.h });
-      const baseTrail = logo.trail === 'line' ? 52 : 16;
+      const baseTrail = logo.trailLength ?? (logo.trail === 'line' ? 52 : 16);
       const maxTrail = Math.max(2, Math.round(baseTrail * state.trailQuality));
       if (logo.history.length > maxTrail) {
         logo.history.splice(0, logo.history.length - maxTrail);

@@ -11,6 +11,6 @@ export const CONFIG = {
   minSpeed: 60,
   maxSpeed: 720,
   defaultMasterGain: 0.75,
-  defaultReverbReturn: 0.22,
+  defaultReverbReturn: 0.7,
   defaultDelayReturn: 0.18,
 };
