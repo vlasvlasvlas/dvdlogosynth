@@ -119,3 +119,6 @@ Pendiente:
 - V2.3 synth modular por logo, V2.4 visual generativo, V2.5 performance profunda.
 
 Detalle: `docs/01-fases-roadmap.md` y `docs/03-backlog-inmediato.md` (no se publican: estan en `.gitignore`).
+## License
+
+MIT License — © 2026 [Vladimiro Bellini](https://github.com/vlasvlasvlas). Free to use and modify, attribution required.
