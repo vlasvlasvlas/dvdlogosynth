@@ -1,6 +1,6 @@
 # dvdlogosynth
 
-logos DVD rebotando donde cada logo es un sinte con identidad propia (color, trayectoria, timbre, drone). Estrellas como puntos de gravedad que curvan o repelen las trayectorias.
+logos DVD rebotando donde cada logo es un sinte con identidad propia (color, trayectoria y timbre). Estrellas como puntos de gravedad que curvan o repelen las trayectorias.
 
 ## Demo
 
@@ -18,7 +18,7 @@ https://vlasvlasvlas.github.io/dvdlogosynth
 
 ### Logos
 
-Por logo: tono, velocidad, sonido on/off, waveform, reverb send, delay (mix + time independientes por canal), drone (volumen, frecuencia, waveform, filtro con cutoff/Q, LFO rate/depth).
+Por logo: tono, velocidad, sonido on/off, waveform y trail. La salida de nivel queda concentrada en un unico control `Master`; no hay volumen continuo por logo.
 
 Trail por logo:
 - `off`: sin estela.
@@ -50,7 +50,6 @@ Idea: sacarse las ganas viejas del DVD logo que nunca llegaba a la esquina.
 - **Solo**: un logo, modo TV clasica.
 - **Classic**: dos logos, sin colisiones, sin efectos.
 - **Neon**: nueve logos con colisiones, reverb y delay altos.
-- **Drone**: seis logos en frecuencias afinadas con drone activo.
 
 ## Stack
 
@@ -64,8 +63,8 @@ js/
   config.js                   # constantes globales (CONFIG, TRAIL_MODES, STAR_*)
   utils.js                    # clamp, randomBetween
   logo.js                     # clase Logo + helpers de mute/solo
-  audio.js                    # AudioEngine (Web Audio: master, comp, limiter, reverb,
-                              #  canal de delay per-logo, drones, pings UI)
+  audio.js                    # AudioEngine (Web Audio: master mono, comp, limiter,
+                              #  reverb/delay acotados, pings UI)
   physics.js                  # rebotes, colisiones logo-logo, gravedad de estrellas
   renderer.js                 # canvas 2D, trails, mascara de dvdlogo.png, render de estrellas
   app.js                      # orquestador: estado, presets, UI, scene save/load, loop,
@@ -108,8 +107,8 @@ Para activarlo en GitHub:
 
 Hecho:
 - Fases 1-5 base + V2.1 (CRT/OSD) + V2.2 (channel bay hasta 64 logos).
-- Per-logo delay channel con time + mix independientes (mix al maximo da feedback ~0.95 cuasi infinito).
-- Reverb mas espacial (impulso 4.5s, send escalado per-voice).
+- Salida final mono con un unico control de nivel `Master`.
+- Delay/reverb acotados internamente para evitar saltos inesperados de volumen.
 - Trail per-logo con length variable (2-1000) y modo line-only.
 - Estrellas de gravedad drageables con force signed (-100..+100), radius y modos de display.
 - Modo iman en esquinas (⛶): toggle que prende 4 estrellas potentes en las esquinas y apaga colisiones.

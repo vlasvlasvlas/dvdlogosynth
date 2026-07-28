@@ -1,5 +1,12 @@
 import { clamp } from './utils.js';
-import { CONFIG } from './config.js';
+import { AUDIO_LIMITS, CONFIG, LOGO_DEFAULTS } from './config.js';
+
+function waveformTrim(type) {
+  if (type === 'square') return 0.62;
+  if (type === 'sawtooth') return 0.68;
+  if (type === 'triangle') return 0.86;
+  return 1;
+}
 
 export function makeDriveCurve(amount) {
   const n = 1024;
@@ -20,6 +27,7 @@ export class AudioEngine {
     this.initialized = false;
 
     this.master = null;
+    this.monoOutput = null;
     this.comp = null;
     this.limiter = null;
 
@@ -58,7 +66,12 @@ export class AudioEngine {
       this.ctx = new AudioCtx({ latencyHint: 'interactive' });
 
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.masterTarget;
+      this.master.gain.value = this.masterTarget * AUDIO_LIMITS.masterOutputTrim;
+
+      this.monoOutput = this.ctx.createGain();
+      this.monoOutput.channelCount = 1;
+      this.monoOutput.channelCountMode = 'explicit';
+      this.monoOutput.channelInterpretation = 'speakers';
 
       this.comp = this.ctx.createDynamicsCompressor();
       this.comp.threshold.value = -20;
@@ -117,7 +130,8 @@ export class AudioEngine {
 
       this.comp.connect(this.limiter);
       this.limiter.connect(this.master);
-      this.master.connect(this.ctx.destination);
+      this.master.connect(this.monoOutput);
+      this.monoOutput.connect(this.ctx.destination);
 
       this.initialized = true;
     }
@@ -133,7 +147,7 @@ export class AudioEngine {
 
   _buildImpulse(seconds, decay) {
     const length = Math.floor(this.ctx.sampleRate * seconds);
-    const impulse = this.ctx.createBuffer(2, length, this.ctx.sampleRate);
+    const impulse = this.ctx.createBuffer(1, length, this.ctx.sampleRate);
 
     for (let channel = 0; channel < impulse.numberOfChannels; channel += 1) {
       const data = impulse.getChannelData(channel);
@@ -146,15 +160,39 @@ export class AudioEngine {
     return impulse;
   }
 
+  _smoothParam(param, target, timeConstant = 0.06) {
+    const now = this.ctx.currentTime;
+    const current = param.value;
+    param.cancelScheduledValues(now);
+    param.setValueAtTime(current, now);
+    param.setTargetAtTime(target, now, timeConstant);
+  }
+
+  _normalizeLogoFx(opts = {}) {
+    return {
+      reverbSend: clamp(
+        Number(opts.reverbSend ?? LOGO_DEFAULTS.reverbSend),
+        0,
+        AUDIO_LIMITS.logoReverbSendMax,
+      ),
+      delayMix: clamp(
+        Number(opts.delayMix ?? LOGO_DEFAULTS.delayMix),
+        0,
+        AUDIO_LIMITS.logoDelayMixMax,
+      ),
+    };
+  }
+
   _connectVoice(voiceGain, opts, logoId) {
+    const fx = this._normalizeLogoFx(opts);
     const dry = this.ctx.createGain();
-    dry.gain.value = Math.max(0.2, 1 - (opts.reverbSend * 0.35 + opts.delayMix * 0.4));
+    dry.gain.value = Math.max(0.78, 0.98 - (fx.reverbSend * 0.5 + fx.delayMix * 0.4));
 
     const toReverb = this.ctx.createGain();
-    toReverb.gain.value = opts.reverbSend * 2.2;
+    toReverb.gain.value = fx.reverbSend * 0.75;
 
     const toDelay = this.ctx.createGain();
-    toDelay.gain.value = opts.delayMix;
+    toDelay.gain.value = fx.delayMix * 0.55;
 
     voiceGain.connect(dry);
     voiceGain.connect(toReverb);
@@ -214,10 +252,14 @@ export class AudioEngine {
       return;
     }
     const now = this.ctx.currentTime;
-    const time = clamp(logo.delayTime ?? 0.26, 0.02, 2.4);
-    const mix = clamp(logo.delayMix ?? 0, 0, 1);
-    ch.delayNode.delayTime.setTargetAtTime(time, now, 0.06);
-    ch.feedback.gain.setTargetAtTime(mix * 0.95, now, 0.05);
+    const time = clamp(logo.delayTime ?? LOGO_DEFAULTS.delayTime, 0.02, AUDIO_LIMITS.logoDelayTimeMax);
+    const mix = clamp(logo.delayMix ?? LOGO_DEFAULTS.delayMix, 0, AUDIO_LIMITS.logoDelayMixMax);
+    ch.delayNode.delayTime.setTargetAtTime(time, now, 0.08);
+    ch.feedback.gain.setTargetAtTime(
+      Math.min(AUDIO_LIMITS.logoDelayFeedbackMax, mix * 0.42),
+      now,
+      0.08,
+    );
   }
 
   _withinVoiceBudget() {
@@ -246,28 +288,26 @@ export class AudioEngine {
       return;
     }
 
-    const now = this.ctx.currentTime;
-    this.delayFeedback.gain.setTargetAtTime(enabled ? 0.26 : 0.34, now, 0.12);
-    this.delayFilter.frequency.setTargetAtTime(enabled ? 3600 : 4700, now, 0.12);
+    this._smoothParam(this.delayFeedback.gain, enabled ? 0.22 : 0.28, 0.12);
+    this._smoothParam(this.delayFilter.frequency, enabled ? 3600 : 4700, 0.12);
   }
 
   setMasterGain(value) {
-    this.masterTarget = clamp(value, 0, 1.2);
+    this.masterTarget = clamp(value, 0, AUDIO_LIMITS.masterGainMax);
     if (!this.initialized || !this.ctx) {
       return;
     }
-    this.master.gain.setTargetAtTime(this.masterTarget, this.ctx.currentTime, 0.05);
+    this._smoothParam(this.master.gain, this.masterTarget * AUDIO_LIMITS.masterOutputTrim, 0.07);
   }
 
   setFxReturnLevels(reverb, delay) {
-    this.reverbReturnTarget = clamp(reverb, 0, 1);
-    this.delayReturnTarget = clamp(delay, 0, 1);
+    this.reverbReturnTarget = clamp(reverb, 0, AUDIO_LIMITS.reverbReturnMax);
+    this.delayReturnTarget = clamp(delay, 0, AUDIO_LIMITS.delayReturnMax);
     if (!this.initialized || !this.ctx) {
       return;
     }
-    const now = this.ctx.currentTime;
-    this.reverbReturnBus.gain.setTargetAtTime(this.reverbReturnTarget, now, 0.08);
-    this.delayReturnBus.gain.setTargetAtTime(this.delayReturnTarget, now, 0.08);
+    this._smoothParam(this.reverbReturnBus.gain, this.reverbReturnTarget, 0.1);
+    this._smoothParam(this.delayReturnBus.gain, this.delayReturnTarget, 0.1);
   }
 
   triggerBounce(logo, intensity = 0.65, kind = 'wall') {
@@ -279,13 +319,14 @@ export class AudioEngine {
     }
 
     const now = this.ctx.currentTime;
-    const clampedIntensity = clamp(intensity, 0.06, 1.25);
+    const clampedIntensity = clamp(intensity, 0.06, 1);
     const base = kind === 'corner' ? 80 : kind === 'collision' ? 105 : 145;
     const freq = clamp(base + logo.hue * 1.4 + clampedIntensity * 300, 70, 3200);
     const duration = kind === 'corner' ? 0.55 : kind === 'collision' ? 0.23 : 0.15;
-    const level = kind === 'corner'
+    const baseLevel = kind === 'corner'
       ? clamp(0.12 + clampedIntensity * 0.18, 0.1, 0.32)
       : clamp(0.06 + clampedIntensity * 0.13, 0.05, 0.24);
+    const level = baseLevel * waveformTrim(logo.wave);
 
     const carrier = this.ctx.createOscillator();
     carrier.type = logo.wave;
@@ -407,83 +448,10 @@ export class AudioEngine {
     }
 
     const existing = this.droneVoices.get(logo.id);
-    const droneActive = logo.droneEnabled && logo.droneActive !== false;
-    if (!droneActive) {
-      if (existing) {
-        this._stopDroneVoice(existing);
-        this.droneVoices.delete(logo.id);
-      }
-      return;
+    if (existing) {
+      this._stopDroneVoice(existing);
+      this.droneVoices.delete(logo.id);
     }
-
-    if (!existing) {
-      const now = this.ctx.currentTime;
-
-      const oscA = this.ctx.createOscillator();
-      oscA.type = logo.droneWave || 'sawtooth';
-      oscA.frequency.setValueAtTime(logo.droneFreq, now);
-
-      const oscB = this.ctx.createOscillator();
-      oscB.type = 'triangle';
-      oscB.frequency.setValueAtTime(logo.droneFreq * 1.003, now);
-
-      const lfo = this.ctx.createOscillator();
-      lfo.type = 'sine';
-      lfo.frequency.setValueAtTime(logo.droneLfoRate || 0.19, now);
-
-      const lfoGain = this.ctx.createGain();
-      const lfoDepth = logo.droneLfoDepth != null ? logo.droneLfoDepth : 0.3;
-      lfoGain.gain.setValueAtTime((logo.droneFilterCutoff || 800) * lfoDepth, now);
-
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = logo.droneFilterType || 'lowpass';
-      filter.frequency.setValueAtTime(logo.droneFilterCutoff || 800, now);
-      filter.Q.value = logo.droneFilterQ || 0.72;
-
-      const amp = this.ctx.createGain();
-      amp.gain.setValueAtTime(0.0001, now);
-      amp.gain.exponentialRampToValueAtTime(Math.max(0.0001, logo.droneVolume * 0.22), now + 0.12);
-
-      this.syncLogoChannel(logo);
-      const aux = this._connectVoice(amp, {
-        reverbSend: Math.min(1.5, logo.reverbSend * 0.85 + 0.12),
-        delayMix: clamp(logo.delayMix, 0, 1),
-      }, logo.id);
-
-      lfo.connect(lfoGain);
-      lfoGain.connect(filter.frequency);
-
-      oscA.connect(filter);
-      oscB.connect(filter);
-      filter.connect(amp);
-
-      oscA.start(now);
-      oscB.start(now);
-      lfo.start(now);
-
-      this.droneVoices.set(logo.id, { oscA, oscB, lfo, lfoGain, filter, amp, aux });
-      return;
-    }
-
-    const now = this.ctx.currentTime;
-    existing.oscA.frequency.setTargetAtTime(logo.droneFreq, now, 0.05);
-    existing.oscB.frequency.setTargetAtTime(logo.droneFreq * 1.003, now, 0.05);
-    existing.filter.type = logo.droneFilterType || 'lowpass';
-    existing.filter.frequency.setTargetAtTime(logo.droneFilterCutoff || 800, now, 0.08);
-    existing.filter.Q.setTargetAtTime(logo.droneFilterQ || 0.72, now, 0.08);
-    existing.lfo.frequency.setTargetAtTime(logo.droneLfoRate || 0.19, now, 0.08);
-    const lfoDepth = logo.droneLfoDepth != null ? logo.droneLfoDepth : 0.3;
-    existing.lfoGain.gain.setTargetAtTime((logo.droneFilterCutoff || 800) * lfoDepth, now, 0.08);
-    existing.amp.gain.setTargetAtTime(Math.max(0.0001, logo.droneVolume * 0.22), now, 0.08);
-
-    this.syncLogoChannel(logo);
-    existing.aux.toReverb.gain.setTargetAtTime(Math.min(1.5, logo.reverbSend * 0.85 + 0.12) * 2.2, now, 0.08);
-    existing.aux.toDelay.gain.setTargetAtTime(clamp(logo.delayMix, 0, 1), now, 0.08);
-    existing.aux.dry.gain.setTargetAtTime(
-      Math.max(0.2, 1 - (logo.reverbSend * 0.35 + logo.delayMix * 0.4)),
-      now,
-      0.08,
-    );
   }
 
   removeLogo(logoId) {

@@ -42,8 +42,8 @@
       <div class="section">
         <div class="section-title">Master</div>
         <div class="control-row">
-          <label>Volume</label>
-          <input id="masterGainInput" type="range" min="0" max="1.2" step="0.01" />
+          <label>Master</label>
+          <input id="masterGainInput" type="range" min="0" max="1" step="0.01" />
         </div>
         <div class="control-row">
           <label>Collisions</label>
@@ -116,62 +116,62 @@
               <option value="square">Square</option>
             </select>
           </div>
-          <div class="control-row">
+          <div class="control-row per-logo-fx-control hidden">
             <label>Reverb</label>
-            <input id="reverbSendInput" type="range" min="0" max="1" step="0.01" />
+            <input id="reverbSendInput" type="range" min="0" max="0.18" step="0.01" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row per-logo-fx-control hidden">
             <label>Delay mix</label>
-            <input id="delayMixInput" type="range" min="0" max="1" step="0.01" />
+            <input id="delayMixInput" type="range" min="0" max="0.14" step="0.01" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row per-logo-fx-control hidden">
             <label>Delay time</label>
-            <input id="delayTimeInput" type="range" min="0.02" max="2" step="0.01" />
+            <input id="delayTimeInput" type="range" min="0.02" max="1.2" step="0.01" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>Drone</label>
-            <input id="droneEnabledInput" type="checkbox" />
+            <input id="droneEnabledInput" type="checkbox" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>Drone vol</label>
-            <input id="droneVolumeInput" type="range" min="0" max="1" step="0.01" />
+            <input id="droneVolumeInput" type="range" min="0" max="0" step="0.01" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>Frequency</label>
-            <input id="droneFreqInput" type="range" min="40" max="1200" step="1" />
+            <input id="droneFreqInput" type="range" min="40" max="1200" step="1" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>Drone wave</label>
-            <select id="droneWaveInput">
+            <select id="droneWaveInput" disabled>
               <option value="sawtooth">Saw</option>
               <option value="triangle">Triangle</option>
               <option value="sine">Sine</option>
               <option value="square">Square</option>
             </select>
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>Filter</label>
-            <select id="droneFilterTypeInput">
+            <select id="droneFilterTypeInput" disabled>
               <option value="lowpass">Lowpass</option>
               <option value="highpass">Highpass</option>
               <option value="bandpass">Bandpass</option>
             </select>
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>Cutoff</label>
-            <input id="droneFilterCutoffInput" type="range" min="60" max="8000" step="1" />
+            <input id="droneFilterCutoffInput" type="range" min="60" max="8000" step="1" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>Resonance</label>
-            <input id="droneFilterQInput" type="range" min="0.1" max="20" step="0.1" />
+            <input id="droneFilterQInput" type="range" min="0.1" max="20" step="0.1" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>LFO rate</label>
-            <input id="droneLfoRateInput" type="range" min="0.01" max="20" step="0.01" />
+            <input id="droneLfoRateInput" type="range" min="0.01" max="20" step="0.01" disabled />
           </div>
-          <div class="control-row">
+          <div class="control-row drone-control hidden">
             <label>LFO depth</label>
-            <input id="droneLfoDepthInput" type="range" min="0" max="1" step="0.01" />
+            <input id="droneLfoDepthInput" type="range" min="0" max="1" step="0.01" disabled />
           </div>
         </div>
       </div>
@@ -185,7 +185,6 @@
             <option value="solo" selected>Solo</option>
             <option value="classic">Classic</option>
             <option value="neon">Neon</option>
-            <option value="drone">Drone</option>
           </select>
         </div>
         <div class="strip-actions">
@@ -208,7 +207,7 @@
       <h3>Logos</h3>
       <dl>
         <dt>+ / −</dt><dd>Agregar / quitar logo (max 64)</dd>
-        <dt>Click en logo</dt><dd>Seleccionar y editar (color, sonido, drone, trail, delay, reverb)</dd>
+        <dt>Click en logo</dt><dd>Seleccionar y editar movimiento, sonido, onda y trail.</dd>
         <dt>Speed</dt><dd>Rango -720 a +720. 0 frena el logo, negativo invierte la direccion (reverse).</dd>
       </dl>
 

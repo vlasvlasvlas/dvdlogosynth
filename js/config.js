@@ -14,13 +14,23 @@ export const WAVE_TYPES = ['sine', 'triangle', 'sawtooth', 'square'];
 // ─── DEFAULTS DEL LOGO ──────────────────────────────────────────────────────
 // Valores iniciales que se aplican a cada logo nuevo (el del splash y los
 // agregados con el boton +). Editar estos numeros cambia el "punto de partida"
-// de la app — los rangos del slider en el sidebar siguen siendo libres, esto
-// es solo el default. Reverb/delay quedan bajos a proposito asi el sonido
-// arranca seco y el usuario los sube cuando quiere.
+// de la app. Reverb/delay quedan bajos y limitados para que no haya saltos
+// de volumen por logo durante performance en vivo.
 export const LOGO_DEFAULTS = {
-  reverbSend: 0.05, // 0..1 — send al bus de reverb (5% por default)
-  delayMix:   0.05, // 0..1 — send al delay per-logo (5% por default)
+  reverbSend: 0.04,
+  delayMix:   0.03,
   delayTime:  0.25, // segundos — tiempo del delay (~25% del rango 0.02..1)
+};
+
+export const AUDIO_LIMITS = {
+  masterGainMax: 1,
+  masterOutputTrim: 0.82,
+  reverbReturnMax: 0.42,
+  delayReturnMax: 0.28,
+  logoReverbSendMax: 0.18,
+  logoDelayMixMax: 0.14,
+  logoDelayTimeMax: 1.2,
+  logoDelayFeedbackMax: 0.5,
 };
 
 export const CONFIG = {
@@ -30,6 +40,6 @@ export const CONFIG = {
   minSpeed: 60,
   maxSpeed: 720,
   defaultMasterGain: 0.75,
-  defaultReverbReturn: 0.7,
-  defaultDelayReturn: 0.18,
+  defaultReverbReturn: 0.28,
+  defaultDelayReturn: 0.12,
 };

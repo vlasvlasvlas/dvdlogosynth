@@ -19,9 +19,9 @@ export class Logo {
     this.delayMix = opts.delayMix ?? opts.delaySend ?? 0;
     this.delayTime = opts.delayTime ?? 0.26;
     this.trailLength = opts.trailLength ?? (opts.trail === 'line' ? 52 : 16);
-    this.droneEnabled = opts.droneEnabled;
+    this.droneEnabled = false;
     this.droneFreq = opts.droneFreq;
-    this.droneVolume = opts.droneVolume;
+    this.droneVolume = 0;
     this.droneWave = opts.droneWave || 'sawtooth';
     this.droneFilterType = opts.droneFilterType || 'lowpass';
     this.droneFilterCutoff = opts.droneFilterCutoff ?? 800;
@@ -32,7 +32,7 @@ export class Logo {
     this.muted = opts.muted;
     this.solo = opts.solo;
     this.locked = opts.locked;
-    this.droneActive = true;
+    this.droneActive = false;
     this.history = [];
     this.hitCooldown = 0;
   }
@@ -139,6 +139,6 @@ export function logoCanSound(logo, logos) {
   return logo.soundEnabled && !logo.muted && (!getSoloActive(logos) || logo.solo);
 }
 
-export function logoCanDrone(logo, logos) {
-  return logo.droneEnabled && !logo.muted && (!getSoloActive(logos) || logo.solo);
+export function logoCanDrone() {
+  return false;
 }
